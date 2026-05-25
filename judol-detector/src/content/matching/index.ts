@@ -59,9 +59,9 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
             fuzzyOffsets.forEach(offset => {
                 res.push({
                     keyword,
-                    matched: text.substring(offset, offset + keyword.length),
-                    offset,
-                    length: keyword.length,
+                    matched: text.substring(offset.offset, offset.offset + keyword.length),
+                    offset: offset.offset,
+                    length: offset.length,
                     algorithm: 'fuzzy',
                     time: startfuzzy - endfuzzy
                 })
