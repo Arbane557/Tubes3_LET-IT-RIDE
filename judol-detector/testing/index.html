@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Judol Detector Scrape Test Page</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.5;
+        color: #172033;
+        background: #f3f4f1;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        border-bottom: 1px solid #d8d8d0;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(10px);
+      }
+
+      nav,
+      main,
+      footer {
+        width: min(1080px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+      }
+
+      nav a {
+        color: #34456a;
+        text-decoration: none;
+        margin-left: 18px;
+        font-weight: 650;
+      }
+
+      main {
+        padding: 32px 0 56px;
+      }
+
+      section {
+        padding: 28px 0;
+        border-bottom: 1px solid #deded5;
+      }
+
+      h1 {
+        max-width: 760px;
+        margin: 0 0 16px;
+        font-size: clamp(2rem, 4vw, 4rem);
+        line-height: 1.04;
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: 1.45rem;
+      }
+
+      p,
+      li {
+        max-width: 820px;
+      }
+
+      .label {
+        display: inline-block;
+        margin-bottom: 12px;
+        color: #7a3e12;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+      }
+
+      .card {
+        min-height: 130px;
+        padding: 18px;
+        border: 1px solid #d9d9cf;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .warning {
+        border-left: 5px solid #b84926;
+        padding: 16px 18px;
+        background: #fff5ee;
+      }
+
+      .safe {
+        border-left: 5px solid #29795a;
+        padding: 16px 18px;
+        background: #effaf5;
+      }
+
+      .muted {
+        color: #5c667a;
+      }
+
+      footer {
+        padding: 24px 0 48px;
+        color: #5c667a;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav aria-label="Main navigation">
+        <strong>LET IT RIDE Test Fixture</strong>
+        <div>
+          <a href="#top">Top</a>
+          <a href="#mixed">Mixed Text</a>
+          <a href="#long">Long Page</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section>
+        <span class="label">Local scrape target</span>
+        <h1>Long HTML page for testing the Judol Detector content script</h1>
+        <p>
+          This file is intentionally text-heavy so the scraper has many text
+          nodes to collect from headings, paragraphs, lists, buttons, links, and
+          cards. Some paragraphs contain ordinary writing, while others include
+          risky phrases such as judi online, slot gacor, taruhan bola, deposit
+          pulsa, togel, casino online, jackpot, bonus new member, and rtp live.
+        </p>
+        <p class="muted">
+          If your content script runs on this page, the browser console should
+          receive text nodes from all visible page sections. Script and style
+          content should be ignored by the scraper.
+        </p>
+      </section>
+
+      <section id="mixed">
+        <h2>Mixed benign and suspicious text</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Study Notes</h3>
+            <p>
+              A student writes a reminder about citation formats, paper drafts,
+              source quality, and research questions for a methodology class.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Promotional Fragment</h3>
+            <p>
+              Klaim bonus new member sekarang, main slot gacor malam ini, dan
+              cek rtp live sebelum memilih room jackpot.
+            </p>
+          </article>
+          <article class="card">
+            <h3>News Excerpt</h3>
+            <p>
+              The city announced better library access, longer opening hours,
+              and training sessions for digital literacy volunteers.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Risky Message</h3>
+            <p>
+              Situs judi online menawarkan deposit pulsa tanpa potongan,
+              taruhan bola, togel resmi, casino online, dan hadiah harian.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Visible text near form controls</h2>
+        <p>
+          The scraper should collect labels and button text too, because they
+          are normal text nodes under the document body.
+        </p>
+        <form>
+          <p>
+            <label>
+              Search phrase
+              <input type="text" value="slot gacor hari ini">
+            </label>
+          </p>
+          <p>
+            <label>
+              Category
+              <select>
+                <option>Education article</option>
+                <option>Judi online advertisement</option>
+                <option>Financial news</option>
+              </select>
+            </label>
+          </p>
+          <button type="button">Scan page text</button>
+          <button type="button">Ignore safe citation content</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Paragraph Set A</h2>
+        <p>
+          The library team created a guide for first-year students who need to
+          understand how to evaluate websites, journals, books, and reports.
+          The guide explains author credibility, publication date, citation
+          style, and how to avoid unsupported claims.
+        </p>
+        <p>
+          A suspicious banner says daftar sekarang di situs slot gacor dengan
+          bonus deposit pulsa, jackpot harian, dan rtp live tinggi. This sentence
+          is intentionally mixed with English so text extraction can be tested
+          across languages.
+        </p>
+        <p>
+          Another ordinary paragraph describes a campus event, a project demo,
+          a browser extension, and a checklist for collecting feedback from
+          users without storing private browsing data.
+        </p>
+      </section>
+
+      <section>
+        <h2>Paragraph Set B</h2>
+        <p>
+          This section repeats many small text nodes. Text node scraping should
+          include the heading above, this paragraph, and each list item below.
+        </p>
+        <ul>
+          <li>Safe item: citation generator workflow and bibliography review.</li>
+          <li>Risk item: promo judi online bonus new member 100 persen.</li>
+          <li>Safe item: browser extension manifest version three.</li>
+          <li>Risk item: taruhan bola, togel, casino online, dan deposit dana.</li>
+          <li>Safe item: accessibility checks, contrast, keyboard navigation.</li>
+          <li>Risk item: slot gacor maxwin gampang menang malam ini.</li>
+        </ul>
+      </section>
+
+      <section id="long">
+        <h2>Long Repeated Content For Scroll Testing</h2>
+        <p>
+          The next blocks make the page long enough to test scraping after a
+          normal page load. They also help verify that text below the fold is
+          still present in the DOM and collected by the TreeWalker.
+        </p>
+      </section>
+
+      <section>
+        <h2>Block 01</h2>
+        <p>
+          Students compare citation styles and prepare notes for an academic
+          writing course. The content is ordinary and should be treated as low
+          risk by a detector focused on gambling advertisements.
+        </p>
+        <p>
+          Hidden inside a longer paragraph is the phrase judi online terpercaya,
+          slot gacor gampang menang, bonus member baru, deposit pulsa, and rtp
+          live. This line should appear in scraped text output.
+        </p>
+      </section>
+
+      <section>
+        <h2>Block 02</h2>
+        <p>
+          A product manager writes acceptance criteria for a content script:
+          run on allowed pages, scrape visible text nodes, skip script tags,
+          and log useful diagnostics during development.
+        </p>
+        <p>
+          Another advertisement-like sentence says main casino online sekarang,
+          klaim jackpot besar, dan pasang taruhan bola malam ini. This is test
+          data, not an actual promotion.
+        </p>
+      </section>
+
+      <section>
+        <h2>Block 03</h2>
+        <p>
+          This paragraph talks about harmless travel planning, train schedules,
+          hotel notes, local food, museum tickets, and budgeting for a short
+          weekend trip with friends.
+        </p>
+        <p>
+          A detector should still receive this node even if it contains no
+          keywords. Collecting neutral text helps validate total page coverage.
+        </p>
+      </section>
+
+      <section>
+        <h2>Block 04</h2>
+        <p class="warning">
+          Peringatan test: situs judi online, togel online, slot gacor, maxwin,
+          rtp live, bonus deposit, dan link alternatif sengaja ditulis untuk
+          menguji apakah scraper mengambil teks panjang dari elemen berbeda.
+        </p>
+        <p>
+          The warning block above is styled differently but remains normal DOM
+          text, so the scraper should capture it.
+        </p>
+      </section>
+
+      <section>
+        <h2>Block 05</h2>
+        <p class="safe">
+          Safe content: this paragraph discusses software testing, source maps,
+          Chrome extension reload behavior, DevTools consoles, and local fixture
+          pages used during frontend development.
+        </p>
+        <p>
+          Make sure your console filter is empty when checking scraped arrays,
+          otherwise Chrome can hide logs that do not match the filter text.
+        </p>
+      </section>
+
+      <section>
+        <h2>Block 06</h2>
+        <p>
+          Research notes: primary sources, peer-reviewed papers, careful
+          citations, reproducible methods, and transparent data collection make
+          a report stronger.
+        </p>
+        <p>
+          Risk notes: akun vip, link slot gacor, situs judi online terbaru,
+          deposit e-wallet, cashback kekalahan, spin gratis, and jackpot harian
+          are intentionally included in this fixture.
+        </p>
+      </section>
+
+      <section>
+        <h2>Block 07</h2>
+        <p>
+          Browser extensions use separate execution contexts. A content script
+          logs to the inspected page console, while popup code logs to the
+          popup's own DevTools window.
+        </p>
+        <p>
+          If this block appears in the scraped output, text below several screen
+          heights is being collected correctly without needing to scroll first.
+        </p>
+      </section>
+
+      <section>
+        <h2>Block 08</h2>
+        <p>
+          Another keyword cluster for detector testing: slot online, judi bola,
+          bandar togel, casino live, rtp slot, bonus referral, and deposit dana.
+        </p>
+        <p>
+          The page keeps going after this so you can test performance and array
+          size when many text nodes exist in the document.
+        </p>
+      </section>
+
+      <section>
+        <h2>Block 09</h2>
+        <p>
+          Neutral text continues with notes about typography, responsive design,
+          accessibility labels, semantic HTML, and browser developer tools.
+        </p>
+        <p>
+          The scraper currently returns objects containing Text nodes and text
+          strings. For cleaner logging, map the result to only the text values.
+        </p>
+      </section>
+
+      <section>
+        <h2>Block 10</h2>
+        <p>
+          Final suspicious sample: promosi judi online, slot gacor maxwin,
+          taruhan bola live, togel hadiah besar, casino online, deposit pulsa,
+          dan rtp live paling tinggi hari ini.
+        </p>
+        <p>
+          End of the long test page. The footer below adds a final text node so
+          you can confirm the scraper reaches the bottom of the document.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      Footer text for scrape verification: this local fixture contains both
+      neutral article content and judol-related keyword samples.
+    </footer>
+
+    <script>
+      console.log("This page script should be ignored by the scraper text walker.");
+    </script>
+  </body>
+</html>
