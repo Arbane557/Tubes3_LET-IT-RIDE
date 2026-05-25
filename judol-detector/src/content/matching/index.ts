@@ -18,6 +18,11 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
         const offsets = exact(lowerText, keyword.toLowerCase())
         const endexact = performance.now()
 
+        // if spec says its hierarki matching
+        // but like if lets say regex find "GACOR99"
+        // but exact match alr found "GACOR" 
+        // which one will be considered as match?
+
         if (offsets.length > 0) {
             offsets.forEach(offset => {
                 res.push({
@@ -41,8 +46,8 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
             regexOffsets.forEach(offset => {
                 res.push({
                     keyword,
-                    matched: text.substring(offset, offset + keyword.length),
-                    offset,
+                    matched: text.substring(offset.offset, offset.offset + keyword.length),
+                    offset: offset.offset,
                     length: keyword.length,
                     algorithm: 'regex',
                     time: startregex - endregex
