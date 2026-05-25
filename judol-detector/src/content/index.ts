@@ -1,6 +1,7 @@
 import { highlight } from './highlight'
 import { scrape } from './scraper'
 import { match } from './matching'
+import { tooltip } from './tooltip'
 import keywordText from '../../keywords/keyword.txt?raw'
 
 console.log('Judol Detector')
@@ -12,6 +13,8 @@ function clearHighlights() {
         mark.replaceWith(document.createTextNode(mark.textContent ?? ''))
     })
 }
+
+tooltip()
 
 function scan() {
     const type = 'kmp' // or 'bm'
