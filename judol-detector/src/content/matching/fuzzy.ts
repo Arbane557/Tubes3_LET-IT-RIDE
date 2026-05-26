@@ -1,37 +1,19 @@
 // using leventhein
 
+// can be optimised with dp (but idk ntar aja)
 function levenshtein(a: string, b: string): number {
-    const r = a.length + 1
-    const c = b.length + 1
+    if (b.length === 0) return a.length
+    if (a.length === 0) return b.length
 
-    const dp: number[][] = []
-
-    for (let i = 0; i < r; i++) {
-        dp[i] = []
-        for (let j = 0; j < c; j++) {
-            dp[i]![j] = 0
-        }
+    if (a[0] === b[0]) {
+        return levenshtein(a.slice(1), b.slice(1))
     }
 
-    for (let i = 0; i < r; i++) dp[i]![0] = i
-    for (let j = 0; j < c; j++) dp[0]![j] = j
-
-    for (let i = 1; i < r; i++) {
-        for (let j = 1; j < c; j++) {
-            if (a[i - 1] === b[j - 1]) {
-                dp[i]![j] = dp[i - 1]![j - 1]
-            } else {
-                dp[i]![j] = Math.min(
-                    dp[i - 1]![j] + 1,
-                    dp[i]![j - 1] + 1,
-                    dp[i - 1]![j - 1] + 1
-                )
-            }
-        }
-    }
-
-    return dp[r - 1]![c - 1]
-
+    return 1 + Math.min(
+        levenshtein(a.slice(1), b),
+        levenshtein(a, b.slice(1)),
+        levenshtein(a.slice(1), b.slice(1))
+    )
 }
 
 const threshold = 2 // tuning on god idk ini ngaturnya gimana
@@ -63,7 +45,7 @@ export function fuzzy(text: string, pattern: string): res[] {
         }
 
         if (best !== -1 && min <= threshold) {
-            offsets.push({ offset: i, length: best })
+            offsets.push( { offset: i, length: best })
             i += best
         }
         else i++
