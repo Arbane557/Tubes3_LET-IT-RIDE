@@ -1,19 +1,25 @@
 // using leventhein
 
 // can be optimised with dp (but idk ntar aja)
-function levenshtein(a: string, b: string): number {
+function levenshtein(a: string, b: string, memo: Map<string, number> = new Map()): number {
     if (b.length === 0) return a.length
     if (a.length === 0) return b.length
 
-    if (a[0] === b[0]) {
-        return levenshtein(a.slice(1), b.slice(1))
-    }
+    const key = `${a.length},${b.length}`
+    if (memo.has(key)) return memo.get(key)!
 
-    return 1 + Math.min(
-        levenshtein(a.slice(1), b),
-        levenshtein(a, b.slice(1)),
-        levenshtein(a.slice(1), b.slice(1))
-    )
+    let result: number
+    if (a[0] === b[0]) {
+        result = levenshtein(a.slice(1), b.slice(1), memo)
+    } else {
+        result = 1 + Math.min(
+            levenshtein(a.slice(1), b, memo),
+            levenshtein(a, b.slice(1), memo),
+            levenshtein(a.slice(1), b.slice(1), memo)
+        )
+    } 
+    memo.set(key, result)
+    return result
 }
 
 const threshold = 2 // tuning on god idk ini ngaturnya gimana
@@ -37,7 +43,7 @@ export function fuzzy(text: string, pattern: string): res[] {
         for (let j = Math.max(1, m - threshold); j <= m + threshold; j++) {
             if (i + j > n) continue
 
-            const d = levenshtein(pattern, text.slice(i, i + j))
+            const d = levenshtein(pattern, text.slice(i, i + j), new Map())
             if (d < min) {
                 min = d
                 best = j
