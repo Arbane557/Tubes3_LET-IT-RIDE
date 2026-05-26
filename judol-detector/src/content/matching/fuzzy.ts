@@ -5,8 +5,10 @@ function levenshtein(a: string, b: string, memo: Map<string, number> = new Map()
     if (b.length === 0) return a.length
     if (a.length === 0) return b.length
 
-    const key = `${a.length},${b.length}`
-    if (memo.has(key)) return memo.get(key)!
+    const key1 = `${a}|${b}`
+    const key2 = `${b}|${a}`
+    if (memo.has(key1)) return memo.get(key1)!
+    else if (memo.has(key2)) return memo.get(key2)!
 
     let result: number
     if (a[0] === b[0]) {
@@ -18,11 +20,10 @@ function levenshtein(a: string, b: string, memo: Map<string, number> = new Map()
             levenshtein(a.slice(1), b.slice(1), memo)
         )
     } 
-    memo.set(key, result)
+    memo.set(key1, result)
+    memo.set(key2, result)
     return result
 }
-
-const threshold = 2 // tuning on god idk ini ngaturnya gimana
 
 export interface res {
     offset: number
@@ -35,6 +36,14 @@ export function fuzzy(text: string, pattern: string): res[] {
     const offsets: res[] = []
 
     let i = 0
+    let threshold = 0
+    let textMemo = new Map<string, number>()
+
+    if (pattern.length <= 5){
+        threshold = 1
+    } else {
+        threshold = 2
+    }
 
     while (i <= n - m + threshold) {
         let best = -1
@@ -42,11 +51,20 @@ export function fuzzy(text: string, pattern: string): res[] {
 
         for (let j = Math.max(1, m - threshold); j <= m + threshold; j++) {
             if (i + j > n) continue
-
-            const d = levenshtein(pattern, text.slice(i, i + j), new Map())
+            
+            let subtext = text.slice(i, i + j)
+            let d: number
+            if (textMemo.has(`${pattern}|${subtext}`)) d = textMemo.get(`${pattern}|${subtext}`)!
+            else if (textMemo.has(`${subtext}|${pattern}`)) d = textMemo.get(`${subtext}|${pattern}`)!
+            else{
+                d = levenshtein(pattern, subtext, textMemo)
+                textMemo.set(`${pattern}|${subtext}`, d)
+                textMemo.set(`${subtext}|${pattern}`, d)
+            }
             if (d < min) {
                 min = d
                 best = j
+                if (min === 0) break
             }
         }
 
