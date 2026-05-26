@@ -31,7 +31,7 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
                     offset,
                     length: keyword.length,
                     algorithm: 'exact',
-                    time: startexact - endexact
+                    time: endexact - startexact
                 })
             })
             continue
@@ -50,7 +50,7 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
                     offset: offset.offset,
                     length: keyword.length,
                     algorithm: 'regex',
-                    time: startregex - endregex
+                    time: endregex - startregex
                 })
             })
             continue
@@ -68,7 +68,7 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
                     offset: offset.offset,
                     length: offset.length,
                     algorithm: 'fuzzy',
-                    time: startfuzzy - endfuzzy
+                    time: endfuzzy - startfuzzy
                 })
             })
             continue

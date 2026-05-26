@@ -16,27 +16,27 @@ function clearHighlights() {
 
 tooltip()
 
-function scan() {
+async function scan() {
     const type = 'kmp' // or 'bm'
 
     clearHighlights()
 
-    const res = scrape()
-        .map(({ node, text }) => ({
-            node,
-            matches: match(text, TEXT_POOL, type)
-        }))
-        .filter(r => r.matches.length > 0)
+    const scraped = scrape()
+    const highlighted = []
 
-    const highlighted = res.map(({ node, matches }) => {
-        const count = highlight(node, matches)
+    for (const { node, text } of scraped) {
+        const matches = match(text, TEXT_POOL, type)
 
-        return {
-            text: node.textContent ?? '',
-            matches,
-            count
+        if (matches.length > 0) {
+            const count = highlight(node, matches)
+
+            highlighted.push({ 
+                text: node.textContent ?? '', 
+                matches, count 
+            })
         }
-    })
+        await new Promise(r => setTimeout(r, 0))
+    }
 
     return highlighted
 }
@@ -45,6 +45,6 @@ const highlighted = scan()
 console.log('judol highlighted', highlighted)
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    const highlighted = scan()
-    sendResponse({highlighted})
+    scan().then(highlighted => sendResponse({ highlighted }))
+    return true
 })
