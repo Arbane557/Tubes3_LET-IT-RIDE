@@ -1,5 +1,5 @@
 import { highlight } from './highlight'
-import { scrape } from './scraper'
+import { scrape, image_scrape } from './scraper'
 import { match } from './matching'
 import { tooltip } from './tooltip'
 import keywordText from '../../keywords/keyword.txt?raw'
@@ -22,7 +22,10 @@ async function scan() {
     clearHighlights()
 
     const scraped = scrape()
+    const scrapedimg = await image_scrape()
     const highlighted = []
+
+    console.log('Scraping successful, scanning...')
 
     for (const { node, text } of scraped) {
         const matches = match(text, TEXT_POOL, type)
@@ -38,13 +41,28 @@ async function scan() {
         await new Promise(r => setTimeout(r, 0))
     }
 
-    return highlighted
+    
+    return { highlighted, scrapedimg }
 }
 
-const highlighted = scan()
-console.log('judol highlighted', highlighted)
+scan().then(({ highlighted, scrapedimg }) => {
+    console.log('judol highlighted', highlighted)
+    console.log('found image: ', scrapedimg)
+})
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    scan().then(highlighted => sendResponse({ highlighted }))
-    return true
+    // if(message.type === 'FETCH_IMAGE'){
+    //     Promise.all(
+    //         message.urls.map(async (url: string) => {
+    //             try {
+    //                 return url
+    //             } catch {
+    //                 return null
+    //             }
+    //         })
+    //     )
+    // } else {    
+        scan().then(highlighted => sendResponse({ highlighted }))
+        return true
+    // }
 })

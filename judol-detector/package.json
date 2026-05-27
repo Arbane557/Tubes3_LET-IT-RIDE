@@ -17,5 +17,8 @@
     "dev": "vite build --watch",
     "build": "vite build",
     "test": "bun test"
+  },
+  "dependencies": {
+    "tesseract.js": "^7.0.0"
   }
 }
