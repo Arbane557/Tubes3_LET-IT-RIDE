@@ -2,6 +2,7 @@ import { highlight } from './highlight'
 import { scrape, image_scrape } from './scraper'
 import { match } from './matching'
 import { tooltip } from './tooltip'
+import { flagImage, replaceImage } from './ocr'
 import keywordText from '../../keywords/keyword.txt?raw'
 
 console.log('Judol Detector')
@@ -13,6 +14,8 @@ function clearHighlights() {
         mark.replaceWith(document.createTextNode(mark.textContent ?? ''))
     })
 }
+
+const imagePlaceholder = 'https://cdn.polyspeak.ai/polyai/800d72ca9aefee47bd749a1ea252e377.jpeg'
 
 tooltip()
 
@@ -41,10 +44,14 @@ async function scan() {
         await new Promise(r => setTimeout(r, 0))
     }
 
-    // let imgInfo: { img: HTMLImageElement, text: string }
-    // for(imgInfo of scrapedimg){
-        
-    // }
+    let imgInfo: { img: HTMLImageElement, text: string }
+    for(imgInfo of scrapedimg){
+        const matches = match(imgInfo.text, TEXT_POOL, type)
+        if(matches.length > 0){
+            replaceImage(imgInfo.img, imagePlaceholder)
+            flagImage(imgInfo.img)
+        }
+    }
 
     return { highlighted, scrapedimg }
 }

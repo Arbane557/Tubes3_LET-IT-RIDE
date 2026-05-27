@@ -23,3 +23,42 @@ export async function scanImages(files: { bytes: number[], type: string}[]): Pro
     }
     return texts
 }
+
+export function flagImage(img: HTMLImageElement){
+    const wrapper = document.createElement('div')
+    wrapper.style.cssText = `
+        position: relative;
+        display: inline-block;
+        width: ${img.offsetWidth}px;
+        height: ${img.offsetHeight}px;
+    `
+
+    const overlay = document.createElement('div')
+    overlay.style.cssText = `
+        position: absolute;
+        inset: 0;
+        background: rgba(238, 255, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        z-index: 9999;
+    `
+    overlay.textContent = 'Terindikasi judol bozo 😂🙏'
+
+    img.parentElement?.insertBefore(wrapper, img)
+    wrapper.appendChild(img)
+    wrapper.appendChild(overlay)
+}
+
+export function replaceImage(img: HTMLImageElement, src: string){
+    img.removeAttribute("srcset")
+    img.removeAttribute("sizes")
+
+    img.src = src
+    img.srcset = src
+
+    img.loading = "eager"
+}

@@ -40,14 +40,8 @@ export function fuzzy(text: string, pattern: string): res[] {
     const offsets: res[] = []
 
     let i = 0
-    let threshold = 0
+    let threshold: number = ((pattern.length) / 5)
     let textMemo = new Map<string, number>()
-
-    if (pattern.length <= 5){
-        threshold = 1
-    } else {
-        threshold = 2
-    }
 
     while (i <= n - m + threshold) {
         let best = -1

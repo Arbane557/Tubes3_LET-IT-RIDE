@@ -100,6 +100,15 @@
         background: #ffffff;
       }
 
+      .card img {
+        width: 100%;
+        aspect-ratio: 4 / 3; /* change this */
+        object-fit: fill;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        display: block;
+      }
+
       .warning {
         border-left: 5px solid #b84926;
         padding: 16px 18px;
@@ -114,6 +123,24 @@
 
       .muted {
         color: #5c667a;
+      }
+
+      .banner-img {
+        width: 100%;
+        aspect-ratio: 16 / 9; /* change this */
+        object-fit: fill;
+        border-radius: 6px;
+        margin: 14px 0;
+        display: block;
+      }
+
+      .square-img {
+        width: 100%;
+        aspect-ratio: 1 / 1; /* change this */
+        object-fit: fill;
+        border-radius: 6px;
+        margin: 14px 0;
+        display: block;
       }
 
       footer {
@@ -145,6 +172,12 @@
           risky phrases such as judi online, slot gacor, taruhan bola, deposit
           pulsa, togel, casino online, jackpot, bonus new member, and rtp live.
         </p>
+        <!-- Image 1: hero banner, gambling ad placeholder -->
+        <img
+          class="banner-img"
+          src="https://ik.imagekit.io/slot88resmi/slot88resmi"
+          alt="slot gacor bonus new member banner"
+        >
         <p class="muted">
           If your content script runs on this page, the browser console should
           receive text nodes from all visible page sections. Script and style
@@ -164,6 +197,11 @@
           </article>
           <article class="card">
             <h3>Promotional Fragment</h3>
+            <!-- Image 2: slot ad inside card -->
+            <img
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzGZZKeCgVjfF42Qbyw3pfjERVNnsLau4efg&s"
+              alt="safe image"
+            >
             <p>
               Klaim bonus new member sekarang, main slot gacor malam ini, dan
               cek rtp live sebelum memilih room jackpot.
@@ -178,6 +216,11 @@
           </article>
           <article class="card">
             <h3>Risky Message</h3>
+            <!-- Image 3: casino ad inside card -->
+            <img
+              src="https://nxt-upload-bucket.ajp7e.upcloudobjects.com/2026/1/28/SLIDE%20BANNER%20GACORPG%20MOBILE%201-1769603134399.jpg"
+              alt="casino online togel taruhan bola jackpot harian"
+            >
             <p>
               Situs judi online menawarkan deposit pulsa tanpa potongan,
               taruhan bola, togel resmi, casino online, dan hadiah harian.
@@ -308,6 +351,12 @@
           rtp live, bonus deposit, dan link alternatif sengaja ditulis untuk
           menguji apakah scraper mengambil teks panjang dari elemen berbeda.
         </p>
+        <!-- Image 4: warning section gambling banner -->
+        <img
+          class="square-img"
+          src="https://royalgroupfile.com/royal138/img/slot-gacor-deposit-dana.webp"
+          alt="rtp live togel online deposit pulsa link alternatif"
+        >
         <p>
           The warning block above is styled differently but remains normal DOM
           text, so the scraper should capture it.
@@ -360,6 +409,12 @@
           Another keyword cluster for detector testing: slot online, judi bola,
           bandar togel, casino live, rtp slot, bonus referral, and deposit dana.
         </p>
+        <!-- Image 5: mid-page judi bola banner -->
+        <img
+          class="banner-img"
+          src="https://download.cdn-shop.com/media/web_images/my/blog/article-132/best-inspirational-quotes-1.webp"
+          alt="safe image"
+        >
         <p>
           The page keeps going after this so you can test performance and array
           size when many text nodes exist in the document.
