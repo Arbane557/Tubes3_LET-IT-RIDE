@@ -41,7 +41,11 @@ async function scan() {
         await new Promise(r => setTimeout(r, 0))
     }
 
-    
+    // let imgInfo: { img: HTMLImageElement, text: string }
+    // for(imgInfo of scrapedimg){
+        
+    // }
+
     return { highlighted, scrapedimg }
 }
 
@@ -51,18 +55,8 @@ scan().then(({ highlighted, scrapedimg }) => {
 })
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    // if(message.type === 'FETCH_IMAGE'){
-    //     Promise.all(
-    //         message.urls.map(async (url: string) => {
-    //             try {
-    //                 return url
-    //             } catch {
-    //                 return null
-    //             }
-    //         })
-    //     )
-    // } else {    
-        scan().then(highlighted => sendResponse({ highlighted }))
-        return true
-    // }
+    if(message.type === 'SCAN'){
+        scan().then(({ highlighted }) => sendResponse({ highlighted }))
+    }
+    return true
 })

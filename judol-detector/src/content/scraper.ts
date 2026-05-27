@@ -1,3 +1,6 @@
+import { scanImages } from "./ocr";
+import { createWorker } from 'tesseract.js'
+
 export function scrape(): { node: Text; text: string }[] {
     const res: { node: Text, text: string }[] = []
 
@@ -37,10 +40,10 @@ async function waitImage(img: HTMLImageElement): Promise <boolean> {
         setTimeout(() => resolve(false), 5000)
     )
 
-    return Promise.race([load, timeout])
+    return Promise.race<boolean>([load, timeout])
 }
 
-export async function image_scrape(): Promise<HTMLImageElement[]> {
+export async function image_scrape(): Promise<{img: HTMLImageElement, text: string}[]> {
     const img_scraper = document.createTreeWalker(
         document.body,
         NodeFilter.SHOW_ELEMENT,
@@ -57,7 +60,7 @@ export async function image_scrape(): Promise<HTMLImageElement[]> {
     )
 
     let filteredimg: HTMLImageElement[] = []
-    // let srcs: string[] = []
+    let srcs: string[] = []
 
     let node: HTMLImageElement
     while((node = img_scraper.nextNode() as HTMLImageElement)) {
@@ -70,9 +73,14 @@ export async function image_scrape(): Promise<HTMLImageElement[]> {
         if(style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') continue
 
         filteredimg.push(node)
-        // srcs.push(node.src)
+        srcs.push(node.src)
     }
 
-    return filteredimg
-    // return chrome.runtime.sendMessage({ type: 'FETCH_IMAGE', urls: srcs })
+    const fetched = await chrome.runtime.sendMessage({ type: 'SCAN_IMAGE', urls: srcs })
+    let imgTexts = await scanImages(fetched)
+    let imgInfo: { img: HTMLImageElement, text: string }[] = []
+    for(let i = 0; i < filteredimg.length; i++){
+        imgInfo.push({img: filteredimg.at(i)!, text: imgTexts[i]!})
+    }
+    return imgInfo
 }

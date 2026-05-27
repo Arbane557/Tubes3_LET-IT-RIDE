@@ -3,6 +3,9 @@
   "name": "Judol Detector",
   "version": "1.0",
   "host_permissions": ["<all_urls>"],
+  "background": {
+      "service_worker": "src/background/index.ts" 
+  },
   "action": {
     "default_popup": "src/popup/popup.html"
   },

@@ -17,7 +17,7 @@ button?.addEventListener('click', async () => {
 
         const response = await chrome.tabs.sendMessage<{type: string}, {highlighted: number}>(
             tab.id,
-            {type: RESCAN_MESSAGE}
+            {type: 'SCAN'}
         )
         setStatus(`Highlighted ${response.highlighted} match(es).`)
     } catch {
