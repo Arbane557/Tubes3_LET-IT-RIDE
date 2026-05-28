@@ -3,7 +3,8 @@ import {bm} from './exact'
 import {normalize} from '../homoglyph'
 import {regex} from './regex'
 import {fuzzy} from './fuzzy'
-import { ahoCorasick } from './aho-corasick';
+import {ahoCorasick} from './aho-corasick'
+import {rabinKarp} from './rabin-karp'
 import type {Match} from '../type'
 
 function isWordChar(char: string | undefined) {
@@ -15,7 +16,7 @@ function hasWordBoundary(text: string, offset: number, length: number) {
 }
 
 function removeOverlap(matches: Match[]): Match[] {
-    const priority: Record<string, number> = { exact: 0, 'aho-corasick': 0, regex: 1, fuzzy: 2 }
+    const priority: Record<string, number> = { exact: 0, 'aho-corasick': 0, 'rabin-karp': 0, regex: 1, fuzzy: 2 }
     const sorted = [...matches].sort((a, b) =>
         priority[a.algorithm]! - priority[b.algorithm]! || a.offset - b.offset
     )
@@ -37,7 +38,6 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
     
     if (exactType === 'aho-corasick') {
         const normalizedKeywords = keywords.map(kw => normalize(kw.toLowerCase()))
-        
         const startAC = performance.now()
         const acMatches = ahoCorasick(lowerText, normalizedKeywords)
         const endAC = performance.now()
@@ -60,12 +60,23 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
             }
         })
     } else {
-        const exact = exactType === 'kmp' ? kmp : bm
+        let safeExactType = exactType?.trim().toLowerCase()
+        let exactAlgorithm
+
+        if (safeExactType === 'bm') {
+            exactAlgorithm = bm
+        } else if (safeExactType === 'rabin-karp') {
+            exactAlgorithm = rabinKarp
+        } else {
+            exactAlgorithm = kmp
+            safeExactType = 'kmp'
+        }
+
         for (const keyword of keywords) {
             const normalizedKeyword = normalize(keyword.toLowerCase())
 
             const startexact = performance.now()
-            const offsets = exact(lowerText, normalizedKeyword).filter((offset) => hasWordBoundary(lowerText, offset, normalizedKeyword.length))
+            const offsets = exactAlgorithm(lowerText, normalizedKeyword).filter((offset) => hasWordBoundary(lowerText, offset, normalizedKeyword.length))
             const endexact = performance.now()
 
             if (offsets.length > 0) {
@@ -75,7 +86,7 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
                         matched: text.substring(offset, offset + keyword.length),
                         offset,
                         length: keyword.length,
-                        algorithm: 'exact',
+                        algorithm: safeExactType, 
                         time: endexact - startexact
                     })
                 })

@@ -1,4 +1,4 @@
-export type Algorithm = 'exact' | 'regex' | 'fuzzy' | 'aho-corasick'
+export type Algorithm = 'exact' | 'regex' | 'fuzzy' | 'aho-corasick' | 'rabin-karp'
 
 export interface Match {
     keyword : string

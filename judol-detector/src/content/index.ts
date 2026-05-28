@@ -76,7 +76,7 @@ updateBlur()
 
 async function scan() {
     const storage = await chrome.storage.local.get('selectedAlgorithm')
-    const type = storage.selectedAlgorithm || 'kmp'
+    const selectedAlgorithm = storage.selectedAlgorithm || 'kmp'
 
     clearHighlights()
     resetStats()
@@ -112,7 +112,7 @@ async function scan() {
     })
     
     for (const { node, img, type, text } of sorted) {
-        const matches = match(text, TEXT_POOL, type)
+        const matches = match(text, TEXT_POOL, selectedAlgorithm)
 
         if (matches.length > 0) {
             if (type === 'text'){
