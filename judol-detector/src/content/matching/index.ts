@@ -1,13 +1,17 @@
 import {kmp} from './exact'
 import {bm} from './exact'
-
+import {normalize} from '../homoglyph'
 import {regex} from './regex'
 import {fuzzy} from './fuzzy'
 import type {Match} from '../type'
 
 export function match(text: string, keywords: string[], exactType: string) : Match[] {
     const res: Match[] = []
+
+
+    // use bottom one if homoglyph normalization neeeded
     const lowerText = text.toLowerCase()
+    //const lowerText = normalize(text).toLowerCase()
     
     const exact = exactType === 'kmp' ? kmp : bm
 
