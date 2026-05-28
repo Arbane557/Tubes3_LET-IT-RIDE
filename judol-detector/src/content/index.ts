@@ -84,37 +84,53 @@ async function scan() {
 
     console.log('Scraping successful, scanning...')
 
+    type ScrapedItem = { node?: Text, img?: HTMLImageElement, type: 'text' | 'image', text: string }
+    const ScrapedItems = []
+    const censoredimg = []
+    
     for (const { node, text } of scraped) {
+        ScrapedItems.push({ node: node, text: text, type: 'text' as const })
+    }
+
+    for (const { img, text } of scrapedimg) {
+        ScrapedItems.push({ img: img, text: text, type: 'image' as const })
+    }
+
+    const sorted: ScrapedItem[] =  ScrapedItems.sort((a, b) => {
+        const nodeA = a.type === 'text' ? a.node : a.img
+        const nodeB = b.type === 'text' ? b.node : b.img
+        const position = nodeA!.compareDocumentPosition(nodeB!)
+        if (position & Node.DOCUMENT_POSITION_FOLLOWING) return -1  // b comes after a
+        if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1   // b comes before a
+        return 0
+    })
+    
+    for (const { node, img, type, text } of sorted) {
         const matches = match(text, TEXT_POOL, type)
 
         if (matches.length > 0) {
-            const count = highlight(node, matches)
+            if (type === 'text'){
+                const count = highlight(node!, matches)
 
-            recordStats(matches, count)
-            updateStat()
+                recordStats(matches, count)
+                updateStat()
 
-            highlighted.push({ 
-                text: node.textContent ?? '', 
-                matches, count 
-            })
+                highlighted.push({ 
+                    text: node!.textContent ?? '', 
+                    matches, count 
+                })
+            } else if (type === 'image'){
+                censoredimg.push({img, text, matches})
+                replaceImage(img!, imagePlaceholder)
+                flagImage(img!)
+            }
         }
         await new Promise(r => setTimeout(r, 0))
     }
 
-    const censoredimg = []
-    let imgInfo: { img: HTMLImageElement, text: string }
-    for(const imgInfo of scrapedimg){
-        const matches = match(imgInfo.text, TEXT_POOL, type)
-        if(matches.length > 0){
-            censoredimg.push({imgInfo, matches})
-            replaceImage(imgInfo.img, imagePlaceholder)
-            flagImage(imgInfo.img)
-        }
-    }
-
     updateStat()
 
-    return { highlighted, scrapedimg }
+    return { highlighted, censoredimg }
 }
 
 scan().then(({ highlighted, censoredimg }) => {
