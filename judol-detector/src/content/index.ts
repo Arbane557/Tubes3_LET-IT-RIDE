@@ -24,7 +24,9 @@ async function scan() {
 
     clearHighlights()
 
+    console.log('    Scraping text...')
     const scraped = scrape()
+    console.log('    Scraping image...')
     const scrapedimg = await image_scrape()
     const highlighted = []
 

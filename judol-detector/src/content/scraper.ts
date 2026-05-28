@@ -77,7 +77,18 @@ export async function image_scrape(): Promise<{img: HTMLImageElement, text: stri
     }
 
     const fetched = await chrome.runtime.sendMessage({ type: 'SCAN_IMAGE', urls: srcs })
-    let imgTexts = await scanImages(fetched)
+
+    const size = Math.ceil(fetched.length / 3)
+    const fetched1 = fetched.slice(0, size)
+    const fetched2 = fetched.slice(size, size*2)
+    const fetched3 = fetched.slice(size*2)
+    const [imgTexts1, imgTexts2, imgTexts3] = await Promise.all([
+        scanImages(fetched1),
+        scanImages(fetched2),
+        scanImages(fetched3)
+    ])
+    const imgTexts = [...imgTexts1, ...imgTexts2, ...imgTexts3]
+
     let imgInfo: { img: HTMLImageElement, text: string }[] = []
     for(let i = 0; i < filteredimg.length; i++){
         imgInfo.push({img: filteredimg.at(i)!, text: imgTexts[i]!})
