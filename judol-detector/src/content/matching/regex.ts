@@ -4,18 +4,14 @@ export interface res {
     length: number
 }
 
-export function regex(text: string, pattern: string): res[] {
-    const n = text.length
-    const m = pattern.length
+export function regex(text: string, pattern?: string): res[] {
     const offsets: res[] = []
 
     try {
-        
-        const cleanPattern = pattern.trim()
-        if (!cleanPattern) return []
-        
-        const newPattern = `${cleanPattern}\\s*\\d*` // specifically for numbers
-        
+        const cleanPattern = pattern?.trim()
+
+        const newPattern = cleanPattern ? `\\b${cleanPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\d{2,3})?\\b` : '\\b[a-z]+\\d{2,3}\\b'
+
         const regex = new RegExp(newPattern, 'gi')
         let match: RegExpExecArray | null
 
@@ -34,3 +30,4 @@ export function regex(text: string, pattern: string): res[] {
 
     return offsets
 }
+

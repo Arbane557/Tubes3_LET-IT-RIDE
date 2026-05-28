@@ -1,30 +1,39 @@
 // using leventhein
+import { normalize } from '../homoglyph'
 
-const prev = new Int32Array(256)
-const arr = new Int32Array(256)
+const prev = new Float32Array(256)
+const curr = new Float32Array(256)
+
+function subCost(a: string, b: string): number {
+    if (a === b) return 0
+    if (normalize(a) === normalize(b)) return 0.5  // visually similar per homoglyph map
+    return 1
+}
+
 // i used this reference btw, goated material
 //  | | |
 //  | | |
 //  V V V
 // https://medium.com/@art3330/levenshtein-distance-fundamentals-817b6f7f1718
 function levenshtein(a: string, b: string): number {
-    for(let i: number = 1; i <= a.length; i++){
-        arr[0] = i
-        for(let j: number = 0; j <= b.length; j++){
-            if (a[i-1] === b[j-1]) {
-                arr[j] = prev[j-1]!
-            } else {
-                let result: number = 1 + Math.min(
-                    prev[j-1]!,
-                    arr[j-1]!,
-                    prev[j]!
-                )
-                arr[j] = result
-            }
+    for (let j = 0; j <= b.length; j++) 
+        prev[j] = j
+    for (let i = 1; i <= a.length; i++) {
+        curr[0] = i
+        for (let j = 1; j <= b.length; j++) {
+            curr[j] = a[i - 1] === b[j - 1] ? prev[j - 1] : Math.min(
+                prev[j - 1] + subCost(a[i - 1], b[j - 1]),
+                curr[j - 1] + 1,
+                prev[j] + 1
+            )
         }
-        prev.set(arr.subarray(0, b.length + 1))
-    } 
+        prev.set(curr.subarray(0, b.length + 1))
+    }
     return prev[b.length]!
+}
+
+function isWordChar(ch: string | undefined) {
+    return ch !== undefined && /[a-z0-9]/i.test(ch)
 }
 
 export interface res {
@@ -35,39 +44,38 @@ export interface res {
 export function fuzzy(text: string, pattern: string): res[] {
     const n = text.length
     const m = pattern.length
-    const offsets: res[] = []
 
+    if (m < 4) return []
+
+    const threshold = Math.max(1, Math.floor(m / 5))
+    const results: res[] = []
     let i = 0
-    let threshold: number = Math.floor((pattern.length) / 5)
-    let textMemo = new Map<string, number>()
 
     while (i <= n - m + threshold) {
-        let best = -1
-        let min = Infinity
+        if (i > 0 && isWordChar(text[i - 1])) { i++; continue }
 
-        for (let j = Math.max(1, m - threshold); j <= m + threshold; j++) {
-            if (i + j > n) continue
-            
-            let subtext = text.slice(i, i + j)
-            let d: number
-            if (textMemo.has(`${pattern}|${subtext}`)) d = textMemo.get(`${pattern}|${subtext}`)!
-            else{
-                d = levenshtein(pattern, subtext)
-                textMemo.set(`${pattern}|${subtext}`, d)
-            }
-            if (d < min) {
-                min = d
-                best = j
-                if (min === 0) break
+        let bestLen = -1
+        let bestDist = Infinity
+
+        for (let len = m - threshold; len <= m + threshold; len++) {
+            if (i + len > n) break
+            if (isWordChar(text[i + len])) continue
+
+            const d = levenshtein(pattern, text.slice(i, i + len))
+            if (d < bestDist) {
+                bestDist = d
+                bestLen = len
+                if (d === 0) break
             }
         }
 
-        if (best !== -1 && min <= threshold) {
-            offsets.push( { offset: i, length: best })
-            i += best
+        if (bestLen !== -1 && bestDist <= threshold) {
+            results.push({ offset: i, length: bestLen })
+            i += bestLen
+        } else {
+            i++
         }
-        else i++
     }
 
-    return offsets
+    return results
 }

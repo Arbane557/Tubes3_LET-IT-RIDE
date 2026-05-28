@@ -10,7 +10,7 @@ const pattern = ["judi", "slot", "casino"]
 const fuzzyText = "slt nfb slot"
 const pattern2 = "slot"
 
-const regexText = "GACOR676 slot76767"
+const regexText = "GACOR676 slot76767 Awesome999"
 const pattern3 = "GACOR"
 const pattern4 = "GACOR99"
 

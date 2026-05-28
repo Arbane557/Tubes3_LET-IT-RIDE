@@ -5,21 +5,43 @@ import {regex} from './regex'
 import {fuzzy} from './fuzzy'
 import type {Match} from '../type'
 
+function isWordChar(char: string | undefined) {
+    return Boolean(char && /[a-z0-9]/i.test(char))
+}
+
+function hasWordBoundary(text: string, offset: number, length: number) {
+    return !isWordChar(text[offset - 1]) && !isWordChar(text[offset + length])
+}
+
+function removeOverlap(matches: Match[]): Match[] {
+    const priority: Record<string, number> = { exact: 0, regex: 1, fuzzy: 2 }
+    const sorted = [...matches].sort((a, b) =>
+        priority[a.algorithm]! - priority[b.algorithm]! || a.offset - b.offset
+    )
+    const accepted: Match[] = []
+    for (const candidate of sorted) {
+        const overlaps = accepted.some(a =>
+            candidate.offset < a.offset + a.length &&
+            candidate.offset + candidate.length > a.offset
+        )
+        if (!overlaps) accepted.push(candidate)
+    }
+    return accepted.sort((a, b) => a.offset - b.offset)
+}
+
 export function match(text: string, keywords: string[], exactType: string) : Match[] {
     const res: Match[] = []
 
-
-    // use bottom one if homoglyph normalization neeeded
-    const lowerText = text.toLowerCase()
-    //const lowerText = normalize(text).toLowerCase()
+    const lowerText = normalize(text.toLowerCase())
     
     const exact = exactType === 'kmp' ? kmp : bm
 
     for (const keyword of keywords) {
+        const normalizedKeyword = normalize(keyword.toLowerCase())
 
         // first part of just exact match
         const startexact = performance.now()
-        const offsets = exact(lowerText, keyword.toLowerCase())
+        const offsets = exact(lowerText, normalizedKeyword).filter((offset) => hasWordBoundary(lowerText, offset, normalizedKeyword.length))
         const endexact = performance.now()
 
         // if spec says its hierarki matching
@@ -41,34 +63,15 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
             continue
         }
 
-        // regex match 
-        const startregex = performance.now()
-        const regexOffsets = regex(lowerText, keyword.toLowerCase())
-        const endregex = performance.now()
-
-        if (regexOffsets.length > 0) {
-            regexOffsets.forEach(offset => {
-                res.push({
-                    keyword,
-                    matched: text.substring(offset.offset, offset.offset + keyword.length),
-                    offset: offset.offset,
-                    length: keyword.length,
-                    algorithm: 'regex',
-                    time: endregex - startregex
-                })
-            })
-            continue
-        }
-
         // fuzzy match
         const startfuzzy = performance.now()
-        const fuzzyOffsets = fuzzy(lowerText, keyword.toLowerCase())
+        const fuzzyOffsets = fuzzy(lowerText, normalizedKeyword)
         const endfuzzy = performance.now()
         if (fuzzyOffsets.length > 0) {
             fuzzyOffsets.forEach(offset => {
                 res.push({
                     keyword,
-                    matched: text.substring(offset.offset, offset.offset + keyword.length),
+                    matched: text.substring(offset.offset, offset.offset + offset.length),
                     offset: offset.offset,
                     length: offset.length,
                     algorithm: 'fuzzy',
@@ -79,6 +82,25 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
         }
     }
 
+    const startregex = performance.now()
+    const regexOffsets = regex(lowerText)
+    const endregex = performance.now()
 
-    return res
+    if (regexOffsets.length > 0) {
+        regexOffsets.forEach(offset => {
+            const matched = text.substring(offset.offset, offset.offset + offset.length)
+            const keyword = matched.replace(/\d{2,3}$/u, '')
+
+            res.push({
+                keyword,
+                matched,
+                offset: offset.offset,
+                length: offset.length,
+                algorithm: 'regex',
+                time: endregex - startregex
+            })
+        })
+    }
+
+    return removeOverlap(res)
 }

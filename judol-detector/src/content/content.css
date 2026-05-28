@@ -8,7 +8,7 @@ mark[data-judol-highlight="true"] {
 .judol-blur-active mark[data-judol-highlight="true"] {
     background-color: yellow;
     color: inherit;
-    filter: blur(10px);
+    filter: blur(5px);
     user-select: none;
     cursor: not-allowed;
 }
