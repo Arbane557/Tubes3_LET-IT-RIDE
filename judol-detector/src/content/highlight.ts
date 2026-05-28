@@ -12,6 +12,7 @@ export function highlight(node: Text, matches: Match[]) {
     const fragment = document.createDocumentFragment()
     let lastIndex = 0
     let highlighted = 0
+    const marks: HTMLElement[] = []
 
     for (const match of sortedMatches) {
         const start = match.offset
@@ -33,11 +34,16 @@ export function highlight(node: Text, matches: Match[]) {
         mark.dataset.time = match.time.toString()
         mark.dataset.foundIndex = highlighted.toString()
         mark.textContent = text.slice(start, end)
+        marks.push(mark)
 
         fragment.append(mark)
 
         lastIndex = end
         highlighted += 1
+    }
+
+    for (const mark of marks) {
+        mark.dataset.count = highlighted.toString()
     }
 
     fragment.append(document.createTextNode(text.slice(lastIndex)))
