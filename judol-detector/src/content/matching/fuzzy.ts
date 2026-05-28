@@ -1,32 +1,30 @@
 // using leventhein
 
+const prev = new Int32Array(256)
+const arr = new Int32Array(256)
 // i used this reference btw, goated material
 //  | | |
 //  | | |
 //  V V V
 // https://medium.com/@art3330/levenshtein-distance-fundamentals-817b6f7f1718
 function levenshtein(a: string, b: string): number {
-    let arr: number[][] = []
-    for(let i: number = 0; i <= a.length; i++){
-        arr[i] = []
+    for(let i: number = 1; i <= a.length; i++){
+        arr[0] = i
         for(let j: number = 0; j <= b.length; j++){
-            if(i === 0){
-                arr[i]?.push(j)
-            } else if (j === 0){
-                arr[i]?.push(i)
-            } else if (a[i-1] === b[j-1]) {
-                arr[i]?.push(arr.at(i-1)?.at(j-1)!)
+            if (a[i-1] === b[j-1]) {
+                arr[j] = prev[j-1]!
             } else {
                 let result: number = 1 + Math.min(
-                    arr.at(i-1)?.at(j-1)!,
-                    arr.at(i)?.at(j-1)!,
-                    arr.at(i-1)?.at(j)!
+                    prev[j-1]!,
+                    arr[j-1]!,
+                    prev[j]!
                 )
-                arr[i]?.push(result)
+                arr[j] = result
             }
         }
+        prev.set(arr.subarray(0, b.length + 1))
     } 
-    return arr.at(a.length)?.at(b.length)!
+    return prev[b.length]!
 }
 
 export interface res {
@@ -40,7 +38,7 @@ export function fuzzy(text: string, pattern: string): res[] {
     const offsets: res[] = []
 
     let i = 0
-    let threshold: number = ((pattern.length) / 5)
+    let threshold: number = Math.floor((pattern.length) / 5)
     let textMemo = new Map<string, number>()
 
     while (i <= n - m + threshold) {
@@ -53,11 +51,9 @@ export function fuzzy(text: string, pattern: string): res[] {
             let subtext = text.slice(i, i + j)
             let d: number
             if (textMemo.has(`${pattern}|${subtext}`)) d = textMemo.get(`${pattern}|${subtext}`)!
-            else if (textMemo.has(`${subtext}|${pattern}`)) d = textMemo.get(`${subtext}|${pattern}`)!
             else{
                 d = levenshtein(pattern, subtext)
                 textMemo.set(`${pattern}|${subtext}`, d)
-                textMemo.set(`${subtext}|${pattern}`, d)
             }
             if (d < min) {
                 min = d
