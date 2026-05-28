@@ -13,7 +13,8 @@ async function preprocess(blob: Blob): Promise<Blob> {
     const data = imageData.data
     for (let i = 0; i < data.length; i += 4) {
         const avg = 0.299 * data[i]! + 0.587 * data[i+1]! + 0.114 * data[i+2]!
-        data[i] = data[i+1] = data[i+2] = avg
+        const bw = avg > 128 ? 255 : 0 
+        data[i] = data[i+1] = data[i+2] = bw
     }
     ctx.putImageData(imageData, 0, 0)
 

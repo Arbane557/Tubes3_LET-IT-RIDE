@@ -46,21 +46,23 @@ async function scan() {
         await new Promise(r => setTimeout(r, 0))
     }
 
+    const censoredimg = []
     let imgInfo: { img: HTMLImageElement, text: string }
-    for(imgInfo of scrapedimg){
+    for(const imgInfo of scrapedimg){
         const matches = match(imgInfo.text, TEXT_POOL, type)
         if(matches.length > 0){
+            censoredimg.push({imgInfo, matches})
             replaceImage(imgInfo.img, imagePlaceholder)
             flagImage(imgInfo.img)
         }
     }
 
-    return { highlighted, scrapedimg }
+    return { highlighted, censoredimg }
 }
 
-scan().then(({ highlighted, scrapedimg }) => {
+scan().then(({ highlighted, censoredimg }) => {
     console.log('judol highlighted', highlighted)
-    console.log('found image: ', scrapedimg)
+    console.log('censored image: ', censoredimg )
 })
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
