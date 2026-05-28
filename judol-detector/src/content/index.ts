@@ -84,14 +84,8 @@ async function scan() {
 
     console.log('Scraping successful, scanning...')
 
-    const scrapedresults = scraped.map(({ node, text }) => ({
-        node,
-        matches: match(text, TEXT_POOL, type)
-    }))
-
-    console.log('Scanning successful, highlighting...')
-
-    for (const { node, matches } of scrapedresults) {
+    for (const { node, text } of scraped) {
+        const matches = match(text, TEXT_POOL, type)
 
         if (matches.length > 0) {
             const count = highlight(node, matches)
@@ -107,8 +101,6 @@ async function scan() {
         await new Promise(r => setTimeout(r, 0))
     }
 
-    console.log('Highlighting successful, scanning image...')
-
     const censoredimg = []
     let imgInfo: { img: HTMLImageElement, text: string }
     for(const imgInfo of scrapedimg){
@@ -122,7 +114,7 @@ async function scan() {
 
     updateStat()
 
-    return { highlighted, censoredimg }
+    return { highlighted, scrapedimg }
 }
 
 scan().then(({ highlighted, censoredimg }) => {
