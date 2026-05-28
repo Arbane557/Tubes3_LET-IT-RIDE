@@ -6,6 +6,7 @@ const statsTotalEl = document.querySelector<HTMLDivElement>('#stats-total')
 const statsPerAlgEl = document.querySelector<HTMLDivElement>('#stats-per-alg')
 const statsTimeEl = document.querySelector<HTMLDivElement>('#stats-time')
 const statsKeywordsEl = document.querySelector<HTMLDivElement>('#stats-keywords')
+const algoSelect = document.querySelector<HTMLSelectElement>('#algo-select')
 
 type HighlightResponse = {
     highlighted: Array<{ count: number }>
@@ -63,9 +64,10 @@ button?.addEventListener('click', async () => {
         const [tab] = await chrome.tabs.query({active: true, currentWindow: true})
         if (!tab?.id) throw new Error('No active tab')
 
-        const response = await chrome.tabs.sendMessage<{type: string}, HighlightResponse>(
+        const algorithm = algoSelect?.value ?? 'kmp'
+        const response = await chrome.tabs.sendMessage<{type: string, algorithm?: string}, HighlightResponse>(
             tab.id,
-            {type: 'SCAN'}
+            {type: 'SCAN', algorithm}
         )
 
         const total = response.highlighted.reduce((sum, item) => sum + item.count, 0)

@@ -70,8 +70,7 @@ tooltip()
 initBlur()
 updateBlur()
 
-async function scan() {
-    const type = 'kmp' // or 'bm'
+async function scan(algorithm = 'kmp') {
 
     clearHighlights()
     resetStats()
@@ -107,7 +106,7 @@ async function scan() {
     })
     
     for (const { node, img, type, text } of sorted) {
-        const matches = match(text, TEXT_POOL, type)
+        const matches = match(text, TEXT_POOL, algorithm)
 
         if (matches.length > 0) {
             if (type === 'text'){
@@ -141,7 +140,8 @@ scan().then(({ highlighted, censoredimg }) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if(message.type === 'SCAN'){
-        scan().then(({ highlighted }) => {
+        const algo = message.algorithm ?? 'kmp'
+        scan(algo).then(({ highlighted }) => {
             sendResponse({ highlighted })
         })
     }
