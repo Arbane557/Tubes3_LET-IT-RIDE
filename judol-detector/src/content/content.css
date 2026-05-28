@@ -1,0 +1,14 @@
+mark[data-judol-highlight="true"] {
+    background-color: yellow;
+    color: inherit;
+    filter: none;
+    user-select: text;
+}
+
+.judol-blur-active mark[data-judol-highlight="true"] {
+    background-color: yellow;
+    color: inherit;
+    filter: blur(10px);
+    user-select: none;
+    cursor: not-allowed;
+}

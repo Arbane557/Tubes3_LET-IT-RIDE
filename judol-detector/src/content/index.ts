@@ -3,6 +3,7 @@ import { scrape, image_scrape } from './scraper'
 import { match } from './matching'
 import { tooltip } from './tooltip'
 import { flagImage, replaceImage } from './ocr'
+import { applyBlur, initBlur, updateBlur } from './blur'
 import keywordText from '../../keywords/keyword.txt?raw'
 
 console.log('Judol Detector')
@@ -18,6 +19,8 @@ function clearHighlights() {
 const imagePlaceholder = 'https://cdn.polyspeak.ai/polyai/800d72ca9aefee47bd749a1ea252e377.jpeg'
 
 tooltip()
+initBlur()
+updateBlur()
 
 async function scan() {
     const type = 'kmp' // or 'bm'
@@ -65,5 +68,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if(message.type === 'SCAN'){
         scan().then(({ highlighted }) => sendResponse({ highlighted }))
     }
+
+    if (message.type === 'SET_BLUR') {
+        applyBlur(Boolean(message.enabled))
+        sendResponse({ blurEnabled: Boolean(message.enabled) })
+    }
+
     return true
 })

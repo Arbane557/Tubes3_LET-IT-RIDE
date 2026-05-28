@@ -27,14 +27,12 @@ export function highlight(node: Text, matches: Match[]) {
 
         // Add highlighted match
         const mark = document.createElement('mark')
-        mark.style.backgroundColor = 'yellow'
-        mark.textContent = text.slice(start, end)
-        
         mark.dataset.judolHighlight = 'true'
         mark.dataset.keyword = match.keyword
         mark.dataset.algorithm = match.algorithm
         mark.dataset.time = match.time.toString()
         mark.dataset.foundIndex = highlighted.toString()
+        mark.textContent = text.slice(start, end)
 
         fragment.append(mark)
 

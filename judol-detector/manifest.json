@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "Judol Detector",
   "version": "1.0",
+  "permissions": ["storage"],
   "host_permissions": ["<all_urls>"],
   "background": {
       "service_worker": "src/background/index.ts" 
@@ -12,6 +13,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
+      "css": ["src/content/content.css"],
       "js": ["src/content/index.ts"]
     }
   ]
