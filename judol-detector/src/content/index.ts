@@ -41,7 +41,11 @@ function stats() {
 }
 
 function updateStat() {
-    chrome.runtime.sendMessage({ type: 'STATS_UPDATE', stats: stats() }).catch(() => {})
+    if (chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({ type: 'STATS_UPDATE', stats: stats() }).catch(() => {})
+    } else {
+        console.warn("Extension context invalidated. Please refresh the page.");
+    }
 }
 
 function recordStats(matches: Array<{ keyword: string; algorithm: string; time: number }>, count: number) {
@@ -71,7 +75,8 @@ initBlur()
 updateBlur()
 
 async function scan() {
-    const type = 'kmp' // or 'bm'
+    const storage = await chrome.storage.local.get('selectedAlgorithm')
+    const type = storage.selectedAlgorithm || 'kmp'
 
     clearHighlights()
     resetStats()
@@ -153,6 +158,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === 'SET_BLUR') {
         applyBlur(Boolean(message.enabled))
         sendResponse({ blurEnabled: Boolean(message.enabled) })
+    }
+
+    if (message.type === 'SET_ALGORITHM') {
+        chrome.storage.local.set({ selectedAlgorithm: message.algorithm }).then(() => {
+            scan().then(({ highlighted }) => {
+                sendResponse({ success: true, highlighted })
+            })
+        })
+        return true
     }
 
     return true

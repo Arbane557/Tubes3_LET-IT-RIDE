@@ -3,6 +3,7 @@ import {bm} from './exact'
 import {normalize} from '../homoglyph'
 import {regex} from './regex'
 import {fuzzy} from './fuzzy'
+import { ahoCorasick } from './aho-corasick';
 import type {Match} from '../type'
 
 function isWordChar(char: string | undefined) {
@@ -14,7 +15,7 @@ function hasWordBoundary(text: string, offset: number, length: number) {
 }
 
 function removeOverlap(matches: Match[]): Match[] {
-    const priority: Record<string, number> = { exact: 0, regex: 1, fuzzy: 2 }
+    const priority: Record<string, number> = { exact: 0, 'aho-corasick': 0, regex: 1, fuzzy: 2 }
     const sorted = [...matches].sort((a, b) =>
         priority[a.algorithm]! - priority[b.algorithm]! || a.offset - b.offset
     )
@@ -31,54 +32,55 @@ function removeOverlap(matches: Match[]): Match[] {
 
 export function match(text: string, keywords: string[], exactType: string) : Match[] {
     const res: Match[] = []
-
     const lowerText = normalize(text.toLowerCase())
+    const matchedKeywords = new Set<string>()
     
-    const exact = exactType === 'kmp' ? kmp : bm
+    if (exactType === 'aho-corasick') {
+        const normalizedKeywords = keywords.map(kw => normalize(kw.toLowerCase()))
+        
+        const startAC = performance.now()
+        const acMatches = ahoCorasick(lowerText, normalizedKeywords)
+        const endAC = performance.now()
 
-    for (const keyword of keywords) {
-        const normalizedKeyword = normalize(keyword.toLowerCase())
+        acMatches.forEach(matchInfo => {
+            if (hasWordBoundary(lowerText, matchInfo.offset, matchInfo.length)) {
+                // find original keyword before normalization
+                const originalIndex = normalizedKeywords.indexOf(matchInfo.keyword)
+                const originalKeyword = originalIndex !== -1 ? keywords[originalIndex] : matchInfo.keyword
 
-        // first part of just exact match
-        const startexact = performance.now()
-        const offsets = exact(lowerText, normalizedKeyword).filter((offset) => hasWordBoundary(lowerText, offset, normalizedKeyword.length))
-        const endexact = performance.now()
-
-        // if spec says its hierarki matching
-        // but like if lets say regex find "GACOR99"
-        // but exact match alr found "GACOR" 
-        // which one will be considered as match?
-
-        if (offsets.length > 0) {
-            offsets.forEach(offset => {
                 res.push({
-                    keyword,
-                    matched: text.substring(offset, offset + keyword.length),
-                    offset,
-                    length: keyword.length,
-                    algorithm: 'exact',
-                    time: endexact - startexact
+                    keyword: originalKeyword,
+                    matched: text.substring(matchInfo.offset, matchInfo.offset + matchInfo.length),
+                    offset: matchInfo.offset,
+                    length: matchInfo.length,
+                    algorithm: 'aho-corasick',
+                    time: endAC - startAC
                 })
-            })
-            continue
-        }
+                matchedKeywords.add(originalKeyword)
+            }
+        })
+    } else {
+        const exact = exactType === 'kmp' ? kmp : bm
+        for (const keyword of keywords) {
+            const normalizedKeyword = normalize(keyword.toLowerCase())
 
-        // fuzzy match
-        const startfuzzy = performance.now()
-        const fuzzyOffsets = fuzzy(lowerText, normalizedKeyword)
-        const endfuzzy = performance.now()
-        if (fuzzyOffsets.length > 0) {
-            fuzzyOffsets.forEach(offset => {
-                res.push({
-                    keyword,
-                    matched: text.substring(offset.offset, offset.offset + offset.length),
-                    offset: offset.offset,
-                    length: offset.length,
-                    algorithm: 'fuzzy',
-                    time: endfuzzy - startfuzzy
+            const startexact = performance.now()
+            const offsets = exact(lowerText, normalizedKeyword).filter((offset) => hasWordBoundary(lowerText, offset, normalizedKeyword.length))
+            const endexact = performance.now()
+
+            if (offsets.length > 0) {
+                offsets.forEach(offset => {
+                    res.push({
+                        keyword,
+                        matched: text.substring(offset, offset + keyword.length),
+                        offset,
+                        length: keyword.length,
+                        algorithm: 'exact',
+                        time: endexact - startexact
+                    })
                 })
-            })
-            continue
+                matchedKeywords.add(keyword)
+            }
         }
     }
 
@@ -100,6 +102,31 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
                 time: endregex - startregex
             })
         })
+    }
+
+    for (const keyword of keywords) {
+        // if word has found in exact, don't do fuzzy
+        if (matchedKeywords.has(keyword)) {
+            continue
+        }
+
+        const normalizedKeyword = normalize(keyword.toLowerCase())
+        const startfuzzy = performance.now()
+        const fuzzyOffsets = fuzzy(lowerText, normalizedKeyword)
+        const endfuzzy = performance.now()
+        
+        if (fuzzyOffsets.length > 0) {
+            fuzzyOffsets.forEach(offset => {
+                res.push({
+                    keyword,
+                    matched: text.substring(offset.offset, offset.offset + offset.length),
+                    offset: offset.offset,
+                    length: offset.length,
+                    algorithm: 'fuzzy',
+                    time: endfuzzy - startfuzzy
+                })
+            })
+        }
     }
 
     return removeOverlap(res)

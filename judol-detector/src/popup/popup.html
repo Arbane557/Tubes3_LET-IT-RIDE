@@ -3,9 +3,20 @@
 <head><meta charset="utf-8"></head>
 <body style="width:200px;padding:12px;font-family:sans-serif">
   <h3>LET IT RIDE</h3>
+
+  <div style="margin-bottom: 8px;">
+    <label for="algo-select" style="font-size: 12px; font-weight: bold;">Exact Algorithm:</label>
+    <select id="algo-select" style="width: 100%; margin-top: 4px; padding: 2px;">
+      <option value="kmp">Knuth-Morris-Pratt (KMP)</option>
+      <option value="bm">Boyer-Moore (BM)</option>
+      <option value="aho-corasick">Aho-Corasick</option>
+    </select>
+  </div>
+
   <button id="rescanButton" type="button">Rescan</button>
   <button id="blur-toggle" type="button">Blur: OFF</button>
   <p id="status" aria-live="polite"></p>
+
   <div id="stats" style="margin-top:8px;font-size:12px">
     <div id="stats-total">Total keywords: 0</div>
     <div id="stats-per-alg" style="margin-top:8px"></div>

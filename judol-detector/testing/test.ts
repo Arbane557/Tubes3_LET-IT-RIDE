@@ -14,9 +14,18 @@ const regexText = "GACOR676 slot76767 Awesome999"
 const pattern3 = "GACOR"
 const pattern4 = "GACOR99"
 
-for (const keyword of pattern) {
-    console.log(match(text, [keyword], 'kmp'))
+const algorithms = ['kmp', 'bm', 'aho-corasick']
+
+for (const algo of algorithms) {
+    console.log(`\n=== Testing Exact: ${algo} ===`)
+    const start = performance.now()
+    const result = match(text, pattern, algo)
+    const end = performance.now()
+    console.log(`Results (${(end - start).toFixed(4)} ms):`, result)
 }
+
+console.log('\n=== Testing Regex ===')
+console.log(match(regexText, [pattern3, pattern4], 'kmp'))
 
 // console.log(kmp(text, pattern))
 // console.log(bm(text, pattern))

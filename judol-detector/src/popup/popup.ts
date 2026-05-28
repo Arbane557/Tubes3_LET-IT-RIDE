@@ -1,5 +1,6 @@
 const button = document.querySelector<HTMLButtonElement>('#rescanButton')
 const blurButton = document.querySelector<HTMLButtonElement>('#blur-toggle')
+const algoSelect = document.querySelector<HTMLSelectElement>('#algo-select')
 const status = document.querySelector<HTMLParagraphElement>('#status')
 const BLUR_STORAGE_KEY = 'judolBlurEnabled'
 const statsTotalEl = document.querySelector<HTMLDivElement>('#stats-total')
@@ -38,6 +39,32 @@ function setBlurEnabled(enabled: boolean) {
         chrome.storage.local.set({ [BLUR_STORAGE_KEY]: enabled }, () => resolve())
     })
 }
+
+chrome.storage.local.get(['selectedAlgorithm'], (result) => {
+    if (algoSelect) {
+        algoSelect.value = result.selectedAlgorithm || 'kmp'
+    }
+})
+
+algoSelect?.addEventListener('change', async () => {
+    const selected = algoSelect.value
+    setStatus('Changing algorithm...')
+    
+    try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+        if (!tab?.id) return
+
+        chrome.tabs.sendMessage(tab.id, { type: 'SET_ALGORITHM', algorithm: selected }, (response) => {
+            if (chrome.runtime.lastError) {
+                setStatus('Refresh page to change algorithm.')
+            } else {
+                setStatus('Algorithm changed. Scanning...')
+            }
+        })
+    } catch {
+        setStatus('Error changing algorithm.')
+    }
+})
 
 function requestCurrentStats() {
     chrome.tabs.query({ active: true, currentWindow: true }, async ([tab]) => {
