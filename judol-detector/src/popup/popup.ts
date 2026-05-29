@@ -7,7 +7,6 @@ const statsTotalEl = document.querySelector<HTMLDivElement>('#stats-total')
 const statsPerAlgEl = document.querySelector<HTMLDivElement>('#stats-per-alg')
 const statsTimeEl = document.querySelector<HTMLDivElement>('#stats-time')
 const statsKeywordsEl = document.querySelector<HTMLDivElement>('#stats-keywords')
-const algoSelect = document.querySelector<HTMLSelectElement>('#algo-select')
 
 type HighlightResponse = {
     highlighted: Array<{ count: number }>
@@ -43,7 +42,8 @@ function setBlurEnabled(enabled: boolean) {
 
 chrome.storage.local.get(['selectedAlgorithm'], (result) => {
     if (algoSelect) {
-        algoSelect.value = result.selectedAlgorithm || 'kmp'
+        const storedAlgorithm = result.selectedAlgorithm as string | undefined
+        algoSelect.value = storedAlgorithm || 'kmp'
     }
 })
 
