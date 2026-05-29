@@ -73,10 +73,13 @@ function resetStats() {
 tooltip()
 initBlur()
 updateBlur()
+async function scan(algorithm?: string) {
+    let selectedAlgorithm = algorithm
 
-async function scan() {
-    const storage = await chrome.storage.local.get('selectedAlgorithm')
-    const selectedAlgorithm = storage.selectedAlgorithm || 'kmp'
+    if (!selectedAlgorithm) {
+        const storage = await chrome.storage.local.get('selectedAlgorithm')
+        selectedAlgorithm = storage.selectedAlgorithm || 'kmp'
+    }
 
     clearHighlights()
     resetStats()
@@ -112,7 +115,7 @@ async function scan() {
     })
     
     for (const { node, img, type, text } of sorted) {
-        const matches = match(text, TEXT_POOL, selectedAlgorithm)
+        const matches = match(text, TEXT_POOL, selectedAlgorithm!)
 
         if (matches.length > 0) {
             if (type === 'text'){
@@ -146,7 +149,8 @@ scan().then(({ highlighted, censoredimg }) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if(message.type === 'SCAN'){
-        scan().then(({ highlighted }) => {
+        const algo = message.algorithm ?? 'kmp'
+        scan(algo).then(({ highlighted }) => {
             sendResponse({ highlighted })
         })
     }
@@ -162,7 +166,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     if (message.type === 'SET_ALGORITHM') {
         chrome.storage.local.set({ selectedAlgorithm: message.algorithm }).then(() => {
-            scan().then(({ highlighted }) => {
+            const algo = message.algorithm ?? 'kmp'
+            scan(algo).then(({ highlighted }) => {
                 sendResponse({ success: true, highlighted })
             })
         })
