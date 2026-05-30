@@ -6,15 +6,22 @@ const BLUR_STORAGE_KEY = 'judolBlurEnabled'
 const statsTotalEl = document.querySelector<HTMLDivElement>('#stats-total')
 const statsPerAlgEl = document.querySelector<HTMLDivElement>('#stats-per-alg')
 const statsTimeEl = document.querySelector<HTMLDivElement>('#stats-time')
-const statsKeywordsEl = document.querySelector<HTMLDivElement>('#stats-keywords')
+const statsExactEl = document.querySelector<HTMLDivElement>('#stats-exact')
+const statsFuzzyEl = document.querySelector<HTMLDivElement>('#stats-fuzzy')
+const statsRegexEl = document.querySelector<HTMLDivElement>('#stats-regex')
 
 type HighlightResponse = {
     highlighted: Array<{ count: number }>
 }
 
+type AlgorithmChangeResponse = HighlightResponse & {
+    success?: boolean
+}
+
 type PopupStats = {
     totalKeywordsFound: number
     keywordCounts: Record<string, number>
+    keywordBuckets: Record<'exact' | 'fuzzy' | 'regex', Record<string, number>>
     perAlgorithm: Record<string, { matches: number; time: number }>
 }
 
@@ -40,6 +47,43 @@ function setBlurEnabled(enabled: boolean) {
     })
 }
 
+function getAlgorithmLabel(algorithm: string) {
+    if (algorithm === 'kmp') return 'KMP'
+    if (algorithm === 'bm') return 'BM'
+    if (algorithm === 'aho-corasick') return 'Aho-Corasick'
+    if (algorithm === 'rabin-karp') return 'Rabin-Karp'
+    return algorithm
+}
+
+function renderKeywordGroup(container: HTMLDivElement, title: string, items: Record<string, number>) {
+    container.replaceChildren()
+
+    const card = document.createElement('div')
+    card.className = 'stat-card'
+
+    const heading = document.createElement('div')
+    heading.className = 'stat-title'
+    heading.textContent = title
+    card.appendChild(heading)
+
+    const entries = Object.entries(items).sort((a, b) => b[1] - a[1])
+
+    if (entries.length === 0) {
+        const empty = document.createElement('p')
+        empty.className = 'empty'
+        empty.textContent = 'None found'
+        card.appendChild(empty)
+        container.appendChild(card)
+        return
+    }
+
+    const list = document.createElement('div')
+    list.className = 'keyword-list'
+    list.textContent = entries.map(([keyword, count]) => `${keyword}${count > 1 ? ` (${count})` : ''}`).join(', ')
+    card.appendChild(list)
+    container.appendChild(card)
+}
+
 chrome.storage.local.get(['selectedAlgorithm'], (result) => {
     if (algoSelect) {
         const storedAlgorithm = result.selectedAlgorithm as string | undefined
@@ -55,13 +99,18 @@ algoSelect?.addEventListener('change', async () => {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
         if (!tab?.id) return
 
-        chrome.tabs.sendMessage(tab.id, { type: 'SET_ALGORITHM', algorithm: selected }, (response) => {
-            if (chrome.runtime.lastError) {
-                setStatus('Refresh page to change algorithm.')
-            } else {
-                setStatus('Algorithm changed. Scanning...')
-            }
+        const response = await chrome.tabs.sendMessage<{ type: string; algorithm?: string }, AlgorithmChangeResponse>(tab.id, {
+            type: 'SET_ALGORITHM',
+            algorithm: selected,
         })
+
+        if (chrome.runtime.lastError || !response) {
+            setStatus('Refresh page to change algorithm.')
+            return
+        }
+
+        const total = response.highlighted?.reduce((sum, item) => sum + item.count, 0) ?? 0
+        setStatus(`Algorithm changed. Highlighted ${total} match(es).`)
     } catch {
         setStatus('Error changing algorithm.')
     }
@@ -107,12 +156,14 @@ button?.addEventListener('click', async () => {
 })
 
 function updateStatsUI(stats: any) {
-    if (!statsTotalEl || !statsPerAlgEl || !statsTimeEl || !statsKeywordsEl) return
+    if (!statsTotalEl || !statsPerAlgEl || !statsTimeEl || !statsExactEl || !statsFuzzyEl || !statsRegexEl) return
 
     statsTotalEl.textContent = `Total keywords: ${stats.totalKeywordsFound ?? 0}`
     statsPerAlgEl.replaceChildren()
     statsTimeEl.replaceChildren()
-    statsKeywordsEl.replaceChildren()
+    statsExactEl.replaceChildren()
+    statsFuzzyEl.replaceChildren()
+    statsRegexEl.replaceChildren()
 
     const per = (stats.perAlgorithm ?? {}) as Record<string, any>
     let maxMatches = 0
@@ -122,49 +173,33 @@ function updateStatsUI(stats: any) {
 
     for (const [alg, d] of Object.entries(per)) {
         const row = document.createElement('div')
-        row.style.marginBottom = '6px'
+        row.className = 'bar-row'
 
         const label = document.createElement('div')
-        label.textContent = `${alg}: ${d.matches} match(es)`
+        label.className = 'bar-label'
+        label.textContent = `${getAlgorithmLabel(alg)}: ${d.matches} match(es)`
 
         const bar = document.createElement('div')
-        bar.style.height = '8px'
-        bar.style.background = '#e5e7eb'
-        bar.style.marginTop = '2px'
+        bar.className = 'bar-track'
 
         const fill = document.createElement('div')
-        fill.style.height = '100%'
-        fill.style.background = '#111'
+        fill.className = 'bar-fill'
         fill.style.width = maxMatches ? `${Math.round((d.matches / maxMatches) * 100)}%` : '0%'
 
         bar.appendChild(fill)
         row.append(label, bar)
 
         const el = document.createElement('div')
-        el.textContent = `${alg}: ${d.time} ms`
+        el.textContent = `${getAlgorithmLabel(alg)}: ${Number(d.time).toFixed(2)} ms`
 
         statsPerAlgEl.append(row)
         statsTimeEl.append(el)
     }
 
-    const keywordCounts = (stats.keywordCounts ?? {}) as Record<string, number>
-    const sortedKeywords = Object.entries(keywordCounts).sort((a, b) => b[1] - a[1])
-
-    if (sortedKeywords.length === 0) {
-        const empty = document.createElement('div')
-        empty.textContent = 'Found keywords: -'
-        statsKeywordsEl.appendChild(empty)
-        return
-    }
-
-    const title = document.createElement('div')
-    title.textContent = 'Found keywords:'
-    statsKeywordsEl.appendChild(title)
-
-    const list = document.createElement('div')
-    list.style.marginTop = '4px'
-    list.textContent = sortedKeywords.map(([keyword, count]) => `${keyword} (${count})`).join(', ')
-    statsKeywordsEl.appendChild(list)
+    const buckets = (stats.keywordBuckets ?? {}) as Record<'exact' | 'fuzzy' | 'regex', Record<string, number>>
+    renderKeywordGroup(statsExactEl, 'Exact', buckets.exact ?? {})
+    renderKeywordGroup(statsFuzzyEl, 'Fuzzy', buckets.fuzzy ?? {})
+    renderKeywordGroup(statsRegexEl, 'Regex', buckets.regex ?? {})
 }
 
 chrome.runtime.onMessage.addListener((message) => {

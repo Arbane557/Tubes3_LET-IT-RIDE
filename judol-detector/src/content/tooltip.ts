@@ -1,5 +1,15 @@
 let toolTipElement: HTMLElement | null = null
 
+function getAlgorithmLabel(algorithm: string) {
+    if (algorithm === 'kmp') return 'Exact / KMP'
+    if (algorithm === 'bm') return 'Exact / Boyer-Moore'
+    if (algorithm === 'aho-corasick') return 'Exact / Aho-Corasick'
+    if (algorithm === 'rabin-karp') return 'Exact / Rabin-Karp'
+    if (algorithm === 'fuzzy') return 'Fuzzy'
+    if (algorithm === 'regex') return 'Regex'
+    return algorithm
+}
+
 function initTooltip(): HTMLElement {
     if (toolTipElement) return toolTipElement
 
@@ -27,6 +37,7 @@ function showTooltip(item: HTMLElement) {
 
     const keyword = item.dataset.keyword ?? item.textContent?.trim() ?? '-'
     const algorithm = item.dataset.algorithm ?? '-'
+    const algorithmLabel = getAlgorithmLabel(algorithm)
     const count = item.dataset.count ?? '1'
     const time = item.dataset.time ?? '-'
 
@@ -34,7 +45,13 @@ function showTooltip(item: HTMLElement) {
     keywordElement.textContent = `Keyword: ${keyword}`
 
     const algorithmElement = document.createElement('div')
-    algorithmElement.textContent = `Algorithm: ${algorithm}`
+    algorithmElement.textContent = `Found by: ${algorithmLabel}`
+
+    if (algorithm === 'kmp' || algorithm === 'bm' || algorithm === 'aho-corasick' || algorithm === 'rabin-karp') {
+        const exactAlgorithmElement = document.createElement('div')
+        exactAlgorithmElement.textContent = `Exact algorithm: ${algorithmLabel.replace('Exact / ', '')}`
+        tooltipElement.append(exactAlgorithmElement)
+    }
 
     const countElement = document.createElement('div')
     countElement.textContent = `Total appearance: ${count}`

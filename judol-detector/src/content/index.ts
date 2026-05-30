@@ -21,19 +21,32 @@ const imagePlaceholder = 'https://cdn.polyspeak.ai/polyai/800d72ca9aefee47bd749a
 type StatsState = {
     totalKeywordsFound: number
     keywordCounts: Record<string, number>
+    keywordBuckets: Record<'exact' | 'fuzzy' | 'regex', Record<string, number>>
     perAlgorithm: Record<string, { matches: number; time: number }>
 }
 
 const liveStats: StatsState = {
     totalKeywordsFound: 0,
     keywordCounts: {},
+    keywordBuckets: { exact: {}, fuzzy: {}, regex: {} },
     perAlgorithm: {},
+}
+
+function algoritmUsed(algorithm: string): 'exact' | 'fuzzy' | 'regex' {
+    if (algorithm === 'fuzzy') return 'fuzzy'
+    if (algorithm === 'regex') return 'regex'
+    return 'exact'
 }
 
 function stats() {
     return {
         totalKeywordsFound: liveStats.totalKeywordsFound,
         keywordCounts: { ...liveStats.keywordCounts },
+        keywordBuckets: {
+            exact: { ...liveStats.keywordBuckets.exact },
+            fuzzy: { ...liveStats.keywordBuckets.fuzzy },
+            regex: { ...liveStats.keywordBuckets.regex },
+        },
         perAlgorithm: Object.fromEntries(
             Object.entries(liveStats.perAlgorithm).map(([algorithm, value]) => [algorithm, { ...value }])
         ),
@@ -53,6 +66,9 @@ function recordStats(matches: Array<{ keyword: string; algorithm: string; time: 
 
     for (const match of matches) {
         liveStats.keywordCounts[match.keyword] = (liveStats.keywordCounts[match.keyword] ?? 0) + 1
+
+        const bucket = algoritmUsed(match.algorithm ?? 'exact')
+        liveStats.keywordBuckets[bucket][match.keyword] = (liveStats.keywordBuckets[bucket][match.keyword] ?? 0) + 1
 
         const algorithm = match.algorithm ?? 'unknown'
         if (!liveStats.perAlgorithm[algorithm]) {
@@ -77,7 +93,7 @@ async function scan(algorithm?: string) {
     let selectedAlgorithm = algorithm
 
     if (!selectedAlgorithm) {
-        const storage = await chrome.storage.local.get('selectedAlgorithm')
+        const storage = await chrome.storage.local.get('selectedAlgorithm') as { selectedAlgorithm?: string }
         selectedAlgorithm = storage.selectedAlgorithm || 'kmp'
     }
 

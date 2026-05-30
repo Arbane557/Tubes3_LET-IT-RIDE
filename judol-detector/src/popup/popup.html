@@ -1,32 +1,187 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"></head>
-<body style="width:200px;padding:12px;font-family:sans-serif">
-  <h3>LET IT RIDE</h3>
+<head>
+  <meta charset="utf-8">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #ffffff;
+      --panel: #ffffff;
+      --border: #d1d5db;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #2563eb;
+    }
 
-  <div style="margin-bottom: 8px;">
-    <label for="algo-select" style="font-size: 12px; font-weight: bold;">Exact Algorithm:</label>
-    <select id="algo-select" style="width: 100%; margin-top: 4px; padding: 2px;">
-      <option value="kmp">Knuth-Morris-Pratt (KMP)</option>
-      <option value="bm">Boyer-Moore (BM)</option>
-      <option value="aho-corasick">Aho-Corasick</option>
-      <option value="rabin-karp">Rabin-Karp</option>
-    </select>
-  </div>
+    body {
+      width: 310px;
+      margin: 0;
+      padding: 12px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-  <button id="rescanButton" type="button">Rescan</button>
-  <button id="blur-toggle" type="button">Blur: OFF</button>
-  <select id="algo-select" aria-label="Algorithm" style="margin-left:8px">
-    <option value="kmp">KMP</option>
-    <option value="bm">BM</option>
-  </select>
-  <p id="status" aria-live="polite"></p>
+    .shell {
+      display: grid;
+      gap: 10px;
+    }
 
-  <div id="stats" style="margin-top:8px;font-size:12px">
-    <div id="stats-total">Total keywords: 0</div>
-    <div id="stats-per-alg" style="margin-top:8px"></div>
-    <div id="stats-time" style="margin-top:8px"></div>
-    <div id="stats-keywords" style="margin-top:8px"></div>
+    .header,
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      padding: 10px 12px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .field-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    select, button {
+      font: inherit;
+    }
+
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    #rescanButton {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    #status {
+      margin: 8px 0 0;
+      min-height: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    #stats {
+      display: grid;
+      gap: 8px;
+    }
+
+    .stat-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #fff;
+    }
+
+    .stat-title {
+      margin: 0 0 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .keyword-list {
+      font-size: 12px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .bar-row {
+      margin-bottom: 6px;
+    }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .bar-track {
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .empty {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="header">
+      <h3 class="title">LET IT RIDE</h3>
+      <p class="subtitle">Scan results, blur controls, and matched keyword breakdowns.</p>
+    </section>
+
+    <section class="panel">
+      <label class="field-label" for="algo-select">Exact Algorithm</label>
+      <select id="algo-select" aria-label="Algorithm">
+        <option value="kmp">Knuth-Morris-Pratt (KMP)</option>
+        <option value="bm">Boyer-Moore (BM)</option>
+        <option value="aho-corasick">Aho-Corasick</option>
+        <option value="rabin-karp">Rabin-Karp</option>
+      </select>
+      <div class="actions" style="margin-top: 10px;">
+        <button id="rescanButton" type="button">Rescan</button>
+        <button id="blur-toggle" type="button">Blur: OFF</button>
+      </div>
+      <p id="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel" id="stats">
+      <div id="stats-total" class="stat-title">Total keywords: 0</div>
+      <div id="stats-per-alg"></div>
+      <div id="stats-time"></div>
+      <div id="stats-keywords"></div>
+      <div id="stats-exact"></div>
+      <div id="stats-fuzzy"></div>
+      <div id="stats-regex"></div>
+    </section>
   </div>
   <script type="module" src="./popup.ts"></script>
 </body>
