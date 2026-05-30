@@ -104,3 +104,40 @@ export function ahoCorasick(text: string, keywords: string[]): ACResult[] {
 
     return results
 }
+
+export function compileAhoCorasick(keywords: string[]): TrieNode {
+    if (keywords.length === 0) return createNode()
+    const root = buildTrie(keywords)
+    buildFailureLinks(root)
+    return root
+}
+
+export function searchAhoCorasick(text: string, root: TrieNode): ACResult[] {
+    if (text.length === 0) return []
+
+    const results: ACResult[] = []
+    let current = root
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i]
+
+        while (current !== root && !current.children.has(char)) {
+            current = current.failureLink!
+        }
+
+        if (current.children.has(char)) {
+            current = current.children.get(char)!
+        } else {
+            current = root
+        }
+
+        if (current.patterns.length > 0) {
+            for (const pattern of current.patterns) {
+                const length = pattern.length
+                const offset = i - length + 1
+                results.push({ keyword: pattern, offset, length })
+            }
+        }
+    }
+    return results
+}
