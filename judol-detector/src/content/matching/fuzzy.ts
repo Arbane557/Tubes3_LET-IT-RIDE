@@ -1,12 +1,12 @@
 // using leventhein
-import { normalize } from '../homoglyph'
+import { homoglyphMap } from '../homoglyph'  // export the map itself
 
 const prev = new Float32Array(256)
 const curr = new Float32Array(256)
 
 function subCost(a: string, b: string): number {
     if (a === b) return 0
-    if (normalize(a) === normalize(b)) return 0.5  // visually similar per homoglyph map
+    if ((homoglyphMap.get(a) ?? a) === (homoglyphMap.get(b) ?? b)) return 0.5
     return 1
 }
 

@@ -1,6 +1,7 @@
 import homoglyphRaw from '../../keywords/homoglyph.txt?raw'
 
 const map = new Map<string, string>()
+export const homoglyphMap = map
 
 for (const line of homoglyphRaw.split(/\r?\n/)) {
     if (!line.trim()) continue
@@ -11,5 +12,10 @@ for (const line of homoglyphRaw.split(/\r?\n/)) {
 }
 
 export function normalize(text: string): string {
-    return [...text].map(ch => map.get(ch) ?? ch).join('')
+    let result = ''
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i]!
+        result += map.get(ch) ?? ch
+    }
+    return result
 }

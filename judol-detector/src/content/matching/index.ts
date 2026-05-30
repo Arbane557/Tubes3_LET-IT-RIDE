@@ -7,6 +7,14 @@ import {ahoCorasick} from './aho-corasick'
 import {rabinKarp} from './rabin-karp'
 import type {Match} from '../type'
 
+const normalizedKeywordCache = new Map<string, string>()
+
+function getNormalizedKeyword(keyword: string): string {
+    const key = keyword.toLowerCase()
+    if (!normalizedKeywordCache.has(key)) normalizedKeywordCache.set(key, normalize(key))
+    return normalizedKeywordCache.get(key)!
+}
+
 function isWordChar(char: string | undefined) {
     return Boolean(char && /[a-z0-9]/i.test(char))
 }
@@ -22,11 +30,10 @@ function removeOverlap(matches: Match[]): Match[] {
     )
     const accepted: Match[] = []
     for (const candidate of sorted) {
-        const overlaps = accepted.some(a =>
-            candidate.offset < a.offset + a.length &&
-            candidate.offset + candidate.length > a.offset
-        )
-        if (!overlaps) accepted.push(candidate)
+        const last = accepted.at(-1)
+        if (!last || candidate.offset >= last.offset + last.length) {
+            accepted.push(candidate)
+        }
     }
     return accepted.sort((a, b) => a.offset - b.offset)
 }
@@ -46,7 +53,7 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
             if (hasWordBoundary(lowerText, matchInfo.offset, matchInfo.length)) {
                 // find original keyword before normalization
                 const originalIndex = normalizedKeywords.indexOf(matchInfo.keyword)
-                const originalKeyword = originalIndex !== -1 ? keywords[originalIndex] : matchInfo.keyword
+                const originalKeyword = originalIndex !== -1 ? keywords[originalIndex]! : (matchInfo.keyword ?? '')
 
                 res.push({
                     keyword: originalKeyword,
@@ -86,7 +93,7 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
                         matched: text.substring(offset, offset + keyword.length),
                         offset,
                         length: keyword.length,
-                        algorithm: safeExactType, 
+                        algorithm: safeExactType as Match['algorithm'], 
                         time: endexact - startexact
                     })
                 })
