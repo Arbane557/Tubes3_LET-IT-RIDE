@@ -1,4 +1,3 @@
-// using leventhein
 import { homoglyphMap } from '../homoglyph'  // export the map itself
 
 const prev = new Float32Array(256)
@@ -15,16 +14,16 @@ function subCost(a: string, b: string): number {
 //  | | |
 //  V V V
 // https://medium.com/@art3330/levenshtein-distance-fundamentals-817b6f7f1718
-function levenshtein(a: string, b: string): number {
+function levenshtein(a: string[], b: string[]): number {
     for (let j = 0; j <= b.length; j++) 
         prev[j] = j
     for (let i = 1; i <= a.length; i++) {
         curr[0] = i
         for (let j = 1; j <= b.length; j++) {
             curr[j] = a[i - 1] === b[j - 1] ? prev[j - 1] : Math.min(
-                prev[j - 1] + subCost(a[i - 1], b[j - 1]),
-                curr[j - 1] + 1,
-                prev[j] + 1
+                prev[j - 1]! + subCost(a[i - 1]!, b[j - 1]!),
+                curr[j - 1]! + 1,
+                prev[j]! + 1
             )
         }
         prev.set(curr.subarray(0, b.length + 1))
@@ -47,6 +46,8 @@ export function fuzzy(text: string, pattern: string): res[] {
 
     if (m < 4) return []
 
+    const arrPattern = Array.from(pattern) 
+    
     const threshold = Math.max(1, Math.floor(m / 5))
     const results: res[] = []
     let i = 0
@@ -60,8 +61,12 @@ export function fuzzy(text: string, pattern: string): res[] {
         for (let len = m - threshold; len <= m + threshold; len++) {
             if (i + len > n) break
             if (isWordChar(text[i + len])) continue
+            
+            const slicedText = text.slice(i, i + len)
+            const arrSliced = Array.from(slicedText)
 
-            const d = levenshtein(pattern, text.slice(i, i + len))
+            const d = levenshtein(arrPattern, arrSliced)
+            
             if (d < bestDist) {
                 bestDist = d
                 bestLen = len
