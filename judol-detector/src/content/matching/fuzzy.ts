@@ -4,10 +4,9 @@ import { homoglyphMap } from '../homoglyph'  // export the map itself
 const prev = new Float32Array(256)
 const curr = new Float32Array(256)
 
-function subCost(a: string, b: string): number {
-    if (a === b) return 0
-    if ((homoglyphMap.get(a) ?? a) === (homoglyphMap.get(b) ?? b)) return 0.5
-    return 1
+
+function normalizeStr(s: string): string {
+    return [...s].map(c => homoglyphMap.get(c) ?? c).join('')
 }
 
 // i used this reference btw, goated material
@@ -15,18 +14,27 @@ function subCost(a: string, b: string): number {
 //  | | |
 //  V V V
 // https://medium.com/@art3330/levenshtein-distance-fundamentals-817b6f7f1718
-function levenshtein(a: string, b: string): number {
+function levenshtein(a: string, b: string, threshold: number): number {
+    const na = normalizeStr(a)  // once per call
+    const nb = normalizeStr(b)  // once per call
+
     for (let j = 0; j <= b.length; j++) 
         prev[j] = j
     for (let i = 1; i <= a.length; i++) {
         curr[0] = i
+        let rowMin = Infinity
         for (let j = 1; j <= b.length; j++) {
+            const cost = a[i-1] === b[j-1] ? 0
+                : na[i-1] === nb[j-1] ? 0.5
+                : 1
             curr[j] = a[i - 1] === b[j - 1] ? prev[j - 1] : Math.min(
-                prev[j - 1] + subCost(a[i - 1], b[j - 1]),
+                prev[j - 1] + cost,
                 curr[j - 1] + 1,
                 prev[j] + 1
             )
+            if (curr[j] < rowMin) rowMin = curr[j] 
         }
+        if (rowMin > threshold) return rowMin
         prev.set(curr.subarray(0, b.length + 1))
     }
     return prev[b.length]!
@@ -61,7 +69,7 @@ export function fuzzy(text: string, pattern: string): res[] {
             if (i + len > n) break
             if (isWordChar(text[i + len])) continue
 
-            const d = levenshtein(pattern, text.slice(i, i + len))
+            const d = levenshtein(pattern, text.slice(i, i + len), threshold)
             if (d < bestDist) {
                 bestDist = d
                 bestLen = len
