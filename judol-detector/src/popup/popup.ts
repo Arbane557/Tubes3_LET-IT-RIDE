@@ -84,6 +84,29 @@ function renderKeywordGroup(container: HTMLDivElement, title: string, items: Rec
     container.appendChild(card)
 }
 
+function resetStatsUI() {
+    if (!statsTotalEl || !statsPerAlgEl || !statsTimeEl || !statsExactEl || !statsFuzzyEl || !statsRegexEl) return
+
+    statsTotalEl.textContent = 'Total keywords: 0'
+    statsPerAlgEl.replaceChildren()
+    statsTimeEl.replaceChildren()
+    statsExactEl.replaceChildren()
+    statsFuzzyEl.replaceChildren()
+    statsRegexEl.replaceChildren()
+
+    const emptyPerAlg = document.createElement('div')
+    emptyPerAlg.textContent = 'No stats yet'
+    statsPerAlgEl.appendChild(emptyPerAlg)
+
+    const emptyTime = document.createElement('div')
+    emptyTime.textContent = '-'
+    statsTimeEl.appendChild(emptyTime)
+
+    renderKeywordGroup(statsExactEl, 'Exact', {})
+    renderKeywordGroup(statsFuzzyEl, 'Fuzzy', {})
+    renderKeywordGroup(statsRegexEl, 'Regex', {})
+}
+
 chrome.storage.local.get(['selectedAlgorithm'], (result) => {
     if (algoSelect) {
         const storedAlgorithm = result.selectedAlgorithm as string | undefined
@@ -94,6 +117,7 @@ chrome.storage.local.get(['selectedAlgorithm'], (result) => {
 algoSelect?.addEventListener('change', async () => {
     const selected = algoSelect.value
     setStatus('Changing algorithm...')
+    resetStatsUI()
     
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
@@ -135,6 +159,7 @@ function requestCurrentStats() {
 button?.addEventListener('click', async () => {
     button.disabled = true
     setStatus('Scanning...')
+    resetStatsUI()
 
     try {
         const [tab] = await chrome.tabs.query({active: true, currentWindow: true})
