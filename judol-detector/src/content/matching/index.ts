@@ -79,20 +79,18 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
             const endAC = performance.now()
 
             acMatches.forEach(matchInfo => {
-                if (hasWordBoundary(lowerText, matchInfo.offset, matchInfo.length)) {
-                    const originalIndex = normalizedRemaining.indexOf(matchInfo.keyword)
-                    const originalKeyword = originalIndex !== -1 ? remainingKeywords[originalIndex]! : (matchInfo.keyword ?? '')
+                const originalIndex = normalizedRemaining.indexOf(matchInfo.keyword)
+                const originalKeyword = originalIndex !== -1 ? remainingKeywords[originalIndex]! : (matchInfo.keyword ?? '')
 
-                    res.push({
-                        keyword: originalKeyword,
-                        matched: text.substring(matchInfo.offset, matchInfo.offset + matchInfo.length),
-                        offset: matchInfo.offset,
-                        length: matchInfo.length,
-                        algorithm: 'aho-corasick',
-                        time: endAC - startAC
-                    })
-                    matchedKeywords.add(originalKeyword)
-                }
+                res.push({
+                    keyword: originalKeyword,
+                    matched: text.substring(matchInfo.offset, matchInfo.offset + matchInfo.length),
+                    offset: matchInfo.offset,
+                    length: matchInfo.length,
+                    algorithm: 'aho-corasick',
+                    time: endAC - startAC
+                })
+                matchedKeywords.add(originalKeyword)
             })
         } else {
             let safeExactType = exactType?.trim().toLowerCase()
@@ -111,7 +109,7 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
                 const normalizedKeyword = normalize(keyword.toLowerCase())
 
                 const startexact = performance.now()
-                const offsets = exactAlgorithm(lowerText, normalizedKeyword).filter((offset: number) => hasWordBoundary(lowerText, offset, normalizedKeyword.length))
+                const offsets = exactAlgorithm(lowerText, normalizedKeyword)
                 const endexact = performance.now()
 
                 if (offsets.length > 0) {
