@@ -132,17 +132,20 @@ export function match(text: string, keywords: string[], exactType: string) : Mat
     }
 
     const startregex = performance.now()
-    const regexOffsets = regex(lowerText)
+    // use original text because can't be false positive when normalized
+    const rawLowerText = text.toLowerCase() 
+    const regexOffsets = regex(rawLowerText)
     const endregex = performance.now()
 
     if (regexOffsets.length > 0) {
         regexOffsets.forEach(offset => {
-            const matched = text.substring(offset.offset, offset.offset + offset.length)
+            const matched = rawLowerText.substring(offset.offset, offset.offset + offset.length)
             const keyword = matched.replace(/\d{2,3}$/u, '')
+            if (!keyword) return
 
             res.push({
                 keyword,
-                matched,
+                matched: text.substring(offset.offset, offset.offset + offset.length),
                 offset: offset.offset,
                 length: offset.length,
                 algorithm: 'regex',
