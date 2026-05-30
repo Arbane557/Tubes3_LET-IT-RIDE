@@ -14,18 +14,21 @@ function subCost(a: string, b: string): number {
 //  | | |
 //  V V V
 // https://medium.com/@art3330/levenshtein-distance-fundamentals-817b6f7f1718
-function levenshtein(a: string[], b: string[]): number {
+function levenshtein(a: string[], b: string[], threshold: number): number {
     for (let j = 0; j <= b.length; j++) 
         prev[j] = j
     for (let i = 1; i <= a.length; i++) {
         curr[0] = i
+        let minRow = Infinity
         for (let j = 1; j <= b.length; j++) {
             curr[j] = a[i - 1] === b[j - 1] ? prev[j - 1] : Math.min(
                 prev[j - 1]! + subCost(a[i - 1]!, b[j - 1]!),
                 curr[j - 1]! + 1,
                 prev[j]! + 1
             )
+            if(curr[j] < minRow) minRow = curr[j]
         }
+        if(minRow > threshold) return minRow
         prev.set(curr.subarray(0, b.length + 1))
     }
     return prev[b.length]!
@@ -65,7 +68,7 @@ export function fuzzy(text: string, pattern: string): res[] {
             const slicedText = text.slice(i, i + len)
             const arrSliced = Array.from(slicedText)
 
-            const d = levenshtein(arrPattern, arrSliced)
+            const d = levenshtein(arrPattern, arrSliced, threshold)
             
             if (d < bestDist) {
                 bestDist = d
